@@ -1813,12 +1813,12 @@ function showCriticalError(plaqueName, folderName) {
 
   document.body.appendChild(overlay);
 
-  // Ferme le jeu et reset après 3 secondes
+  // Ferme le jeu et reset après 7 secondes
   setTimeout(() => {
     document.body.removeChild(overlay);
     closeWin('winGame');
     resetGame();
-  }, 3000);
+  }, 7000);
 }
 
 // ── RESET DU JEU ──
