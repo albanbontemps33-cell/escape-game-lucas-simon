@@ -376,7 +376,7 @@ body {
 
 /* Explorateur de dossier */
 .folder-window {
-  width: 580px;
+  width: 780px;
 }
 
 .folder-toolbar {
@@ -489,7 +489,7 @@ body {
 
 /* ═══════════════ LECTEUR VIDÉO ═══════════════ */
 .video-window {
-  width: 520px;
+  width: 720px;
 }
 
 .video-container {
@@ -593,7 +593,7 @@ body {
 
 /* ═══════════════ FENÊTRE MINI-JEU ═══════════════ */
 .game-window {
-  width: 640px;
+  width: 800px;
 }
 
 .game-titlebar-info {
@@ -603,8 +603,8 @@ body {
 
 #gameCanvas {
   display: block;
-  width: 640px;
-  height: 480px;
+  width: 800px;
+  height: 600px;
   image-rendering: pixelated;
 }
 
@@ -619,12 +619,12 @@ body {
 
 /* ═══════════════ FENÊTRE ADMIN (notes du père) ═══════════════ */
 .admin-window {
-  width: 560px;
+  width: 720px;
 }
 
 .admin-body {
   padding: 16px 20px;
-  max-height: 400px;
+  max-height: 560px;
   overflow-y: auto;
   font-size: 12px;
   line-height: 1.8;
@@ -938,36 +938,55 @@ body {
     </div>
   </div>
 
-  <!-- ══ NOTIFICATION LUCAS ══ -->
+  <!-- ══ NOTIFICATION LUCAS (toast discret) ══ -->
   <div id="lucasNotif" style="display:none; position:fixed; bottom:50px; right:20px; z-index:5000;
-    width:320px; background:#1a2a3a; border:2px solid #4a8abf; box-shadow:0 4px 20px rgba(0,0,0,0.7);
+    width:300px; background:#1a2a3a; border:2px solid #4a8abf; box-shadow:0 4px 30px rgba(0,0,0,0.8);
     font-family:Tahoma,Arial; animation: slideInNotif 0.4s ease-out;">
     <style>
       @keyframes slideInNotif {
-        from { transform:translateX(360px); opacity:0; }
+        from { transform:translateX(340px); opacity:0; }
         to   { transform:translateX(0);     opacity:1; }
       }
-      @keyframes pulse {
-        0%,100% { box-shadow:0 4px 20px rgba(74,138,191,0.4); }
-        50%      { box-shadow:0 4px 30px rgba(74,138,191,0.9); }
-      }
     </style>
-    <div style="background:linear-gradient(90deg,#1a5a9a,#0d3d70); padding:6px 10px; display:flex; align-items:center; justify-content:space-between;">
-      <div style="color:white; font-size:11px; font-weight:bold; display:flex; align-items:center; gap:6px;">
-        <span style="font-size:16px;">💬</span> Nouveau message — Lucas_S
+    <div style="background:linear-gradient(90deg,#1a5a9a,#0d3d70); padding:6px 10px; display:flex; align-items:center; gap:8px;">
+      <span style="font-size:16px;">💬</span>
+      <div>
+        <div style="color:white; font-size:11px; font-weight:bold;">Nouveau message</div>
+        <div style="color:#a8d0f0; font-size:10px;">De : Lucas_S &nbsp;·&nbsp; <span id="notifTime"></span></div>
       </div>
-      <button onclick="closeLucasNotif()" style="background:#c03020;border:none;color:white;font-size:10px;width:16px;height:16px;cursor:pointer;font-weight:bold;">✕</button>
     </div>
-    <div style="padding:14px 16px;">
-      <div style="color:#7ad4ff; font-size:10px; margin-bottom:8px;">📅 Aujourd'hui à <span id="notifTime"></span></div>
-      <div style="color:#e0eeff; font-size:12px; line-height:1.8;">
-        Salut... j'espère que vous êtes encore là.<br><br>
-        Je voulais vous donner un cadeau — <strong style="color:#ffd080;">mon jouet préféré</strong>. J'ai écrit un code dessus qui pourrait vous être utile...<br><br>
-        Mais <strong style="color:#ff6060;">il est arrivé</strong>, alors je suis parti me cacher. J'ai fait tomber mon jouet dans la salle où il y a les toilettes.<br><br>
-        <em style="color:#aaccee;">Allez le chercher. Il vous sera très utile.</em>
+    <div style="padding:12px 14px;">
+      <div style="color:#c0d8f0; font-size:11px; margin-bottom:12px; font-style:italic;">
+        Vous avez reçu un message. Cliquez pour le lire.
       </div>
-      <div style="margin-top:14px; display:flex; justify-content:flex-end;">
-        <button onclick="closeLucasNotif()" style="background:linear-gradient(180deg,#4a90d0,#1a5a9a);border:2px outset #6ab0f0;border-bottom-color:#0a3a7a;color:white;font-family:Tahoma;font-size:11px;padding:4px 16px;cursor:pointer;">
+      <div style="display:flex; justify-content:center;">
+        <button onclick="openLucasMessage()" style="background:linear-gradient(180deg,#4a90d0,#1a5a9a);border:2px outset #6ab0f0;border-bottom-color:#0a3a7a;color:white;font-family:Tahoma;font-size:11px;font-weight:bold;padding:5px 22px;cursor:pointer;">
+          📨 Ouvrir le message
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FENÊTRE MESSAGE LUCAS ══ -->
+  <div id="lucasMessageWin" style="display:none; position:fixed; inset:0; z-index:6000; background:rgba(0,0,0,0.55); align-items:center; justify-content:center;">
+    <div style="background:#d4e4f5; border:2px solid #7aa0c4; width:420px; font-family:Tahoma,Arial; box-shadow:6px 6px 20px rgba(0,0,0,0.5);">
+      <div style="background:linear-gradient(180deg,#1a5a9a,#0d3d70); color:white; font-size:12px; font-weight:bold; padding:5px 10px; display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:6px;"><span>💬</span> Message de Lucas_S</div>
+        <button onclick="closeLucasMessage()" style="background:linear-gradient(180deg,#e06050,#c03020);border:1px outset #ff8070;color:white;font-size:10px;width:18px;height:16px;cursor:pointer;font-weight:bold;">✕</button>
+      </div>
+      <div style="background:white; margin:4px; padding:16px 18px;">
+        <div style="color:#7ad4ff; font-size:10px; margin-bottom:12px; border-bottom:1px solid #e0eeff; padding-bottom:8px;">
+          📅 Reçu aujourd'hui à <span id="lucasMsgTime"></span> &nbsp;·&nbsp; De : Lucas_S &nbsp;·&nbsp; À : Equipe_Scientifique
+        </div>
+        <div style="color:#1a2a3a; font-size:12px; line-height:1.9;">
+          Salut... j'espère que vous êtes encore là.<br><br>
+          Je voulais vous donner un cadeau — <strong style="color:#7a5800;">mon jouet préféré</strong>. J'ai écrit un code dessus qui pourrait vous être utile...<br><br>
+          Mais <strong style="color:#cc2020;">il est arrivé</strong>, alors je suis parti me cacher. J'ai fait tomber mon jouet dans la salle où il y a les toilettes.<br><br>
+          <em style="color:#336699;">Allez le chercher. Il vous sera très utile.</em>
+        </div>
+      </div>
+      <div style="padding:8px 12px 12px; display:flex; justify-content:flex-end;">
+        <button onclick="closeLucasMessage()" style="background:linear-gradient(180deg,#f0f0ea,#d8d4c8);border:2px outset #ffffff;border-bottom-color:#808080;border-right-color:#808080;font-family:Tahoma;font-size:11px;padding:5px 20px;cursor:pointer;min-width:80px;">
           Fermer
         </button>
       </div>
@@ -1507,13 +1526,22 @@ function updateVideoProgress2() {
 function showLucasNotif() {
   const notif = document.getElementById('lucasNotif');
   const now = new Date();
-  document.getElementById('notifTime').textContent =
-    String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  const t = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('notifTime').textContent = t;
+  document.getElementById('lucasMsgTime').textContent = t;
   notif.style.display = 'block';
 }
 
-function closeLucasNotif() {
+function openLucasMessage() {
+  // Masque la notification toast
   document.getElementById('lucasNotif').style.display = 'none';
+  // Ouvre la fenêtre de message
+  const win = document.getElementById('lucasMessageWin');
+  win.style.display = 'flex';
+}
+
+function closeLucasMessage() {
+  document.getElementById('lucasMessageWin').style.display = 'none';
   // Révèle le dossier Patient 001 Part.2 sur le bureau
   document.getElementById('iconPatient2').style.display = 'flex';
 }
