@@ -769,7 +769,7 @@ body {
       <div class="icon-img">🔐</div>
       <div class="icon-label">Dossier<br>Patient 001<br>Part.2</div>
     </div>
-    <div class="desktop-icon" ondblclick="alert('Accès refusé : corbeille système.')">
+    <div class="desktop-icon">
       <div class="icon-img">🗑️</div>
       <div class="icon-label">Corbeille</div>
     </div>
@@ -1105,6 +1105,32 @@ body {
   </div>
 </div>
 
+<!-- ═══════════ BOOT ANIMATION SCREEN ═══════════ -->
+<div id="bootScreen" style="display:none; position:fixed; inset:0; z-index:9000; background:#000; font-family:'Courier New',monospace; overflow:hidden;">
+  <canvas id="bootCanvas" style="position:absolute; inset:0; width:100%; height:100%; opacity:0.35;"></canvas>
+  <div id="bootWindow" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:480px; background:#0a1520; border:2px solid #1a6a3a; box-shadow:0 0 40px rgba(0,200,80,0.3);">
+    <div style="background:linear-gradient(90deg,#0d3d1a,#0a2a12); padding:5px 10px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #1a6a3a;">
+      <span style="color:#40ff80; font-size:11px; font-weight:bold;">⬡ SimonLab — Initialisation du système</span>
+      <span style="color:#40ff80; font-size:10px;" id="bootClock">00:00:00</span>
+    </div>
+    <div style="padding:16px 18px;">
+      <div id="bootLog" style="height:200px; overflow:hidden; font-size:11px; line-height:1.7; color:#40ff80;"></div>
+      <div style="margin-top:14px; border-top:1px solid #1a3a2a; padding-top:12px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <span style="color:#40ff80; font-size:11px;">Chargement du bureau...</span>
+          <span style="color:#80ffaa; font-size:11px;" id="bootPct">0%</span>
+        </div>
+        <div style="background:#0d1e0d; border:1px solid #1a6a3a; height:18px; position:relative; overflow:hidden;">
+          <div id="bootBar" style="height:100%; width:0%; background:linear-gradient(90deg,#1a8a3a,#40ff80); position:relative;">
+            <div style="position:absolute; inset:0; background:repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(0,0,0,0.15) 8px, rgba(0,0,0,0.15) 16px);"></div>
+          </div>
+        </div>
+        <div style="color:#3aaa6a; font-size:10px; margin-top:5px;" id="bootSub">Initialisation des protocoles de sécurité...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════ CONFIG ═══════════════════
 const LOGIN_PWD   = "TAHITI";
@@ -1146,13 +1172,169 @@ function doLogin() {
   const v = document.getElementById('loginPwd').value.trim().toUpperCase();
   if (v === LOGIN_PWD) {
     document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('desktop').style.display = 'block';
+    startBootAnimation();
   } else {
     const err = document.getElementById('loginErr');
     err.textContent = '⚠ Le mot de passe est incorrect. Veuillez réessayer.';
     document.getElementById('loginPwd').value = '';
     setTimeout(() => { err.textContent = ''; }, 3000);
   }
+}
+
+// ═══════════════════ BOOT ANIMATION ═══════════════════
+function startBootAnimation() {
+  const screen = document.getElementById('bootScreen');
+  screen.style.display = 'block';
+
+  // ── Code rain canvas ──
+  const canvas = document.getElementById('bootCanvas');
+  const ctx2 = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const cols = Math.floor(canvas.width / 14);
+  const drops = Array(cols).fill(0).map(() => Math.random() * -50);
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*<>[]{}|/\\アイウエオカキクケコサシスセソタチツテト一二三四五六七八九十';
+
+  let rainRunning = true;
+  function drawRain() {
+    if (!rainRunning) return;
+    ctx2.fillStyle = 'rgba(0,0,0,0.05)';
+    ctx2.fillRect(0, 0, canvas.width, canvas.height);
+    ctx2.font = '13px Courier New';
+    for (let i = 0; i < drops.length; i++) {
+      const char = chars[Math.floor(Math.random() * chars.length)];
+      const bright = Math.random() > 0.95;
+      ctx2.fillStyle = bright ? '#aaffcc' : '#20c060';
+      ctx2.fillText(char, i * 14, drops[i] * 14);
+      if (drops[i] * 14 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i] += 0.5 + Math.random() * 0.5;
+    }
+    requestAnimationFrame(drawRain);
+  }
+  drawRain();
+
+  // ── Boot clock ──
+  const startTime = Date.now();
+  const clockInterval = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const h = String(Math.floor(elapsed / 3600000)).padStart(2,'0');
+    const m = String(Math.floor((elapsed % 3600000) / 60000)).padStart(2,'0');
+    const s = String(Math.floor((elapsed % 60000) / 1000)).padStart(2,'0');
+    document.getElementById('bootClock').textContent = h + ':' + m + ':' + s;
+  }, 100);
+
+  // ── Log lines ──
+  const logLines = [
+    '[INIT] SimonLab Secure Workstation v2.04.1',
+    '[BOOT] Vérification de l\'intégrité du BIOS... OK',
+    '[BOOT] Détection du matériel... OK',
+    '[MEM]  RAM : 512 MB détectée — Test mémoire... PASS',
+    '[CPU]  Processeur : Intel Pentium IV 2.4 GHz',
+    '[DISK] Disque C: détecté — 80 GB — FAT32',
+    '[DISK] Lecture du secteur de démarrage... OK',
+    '[SEC]  Chargement du module de sécurité SimonLab...',
+    '[SEC]  Vérification des certificats numériques... PASS',
+    '[SEC]  Protocole de chiffrement AES-256 activé',
+    '[NET]  Interface réseau locale : 192.168.1.42',
+    '[NET]  Connexion au serveur SimonLab... ETABLIE',
+    '[SYS]  Chargement des pilotes périphériques...',
+    '[SYS]  Initialisation du sous-système graphique...',
+    '[SYS]  Montage des volumes chiffrés...',
+    '[LOG]  Connexion enregistrée — Equipe_Scientifique',
+    '[AUTH] Niveau d\'accès : CONFIDENTIEL — validé',
+    '[PROT] Protocole Éveil — module chargé en mémoire',
+    '[ARCH] Accès dossiers archivés — déverrouillage...',
+    '[SYS]  Chargement de l\'environnement de bureau...',
+    '[UI]   Initialisation de l\'interface utilisateur...',
+    '[SYS]  Démarrage des services en arrière-plan...',
+    '[OK]   Système prêt.',
+  ];
+
+  const logEl = document.getElementById('bootLog');
+  const subEl = document.getElementById('bootSub');
+  const barEl = document.getElementById('bootBar');
+  const pctEl = document.getElementById('bootPct');
+
+  const subMessages = [
+    'Initialisation des protocoles de sécurité...',
+    'Chargement des modules système...',
+    'Vérification des accès utilisateur...',
+    'Montage des partitions chiffrées...',
+    'Démarrage des services réseau...',
+    'Finalisation de l\'environnement...',
+  ];
+
+  let logIndex = 0;
+  let progress = 0;
+  let subIdx = 0;
+
+  // Progress bar random advancement over 10s
+  const totalDuration = 10000;
+  const progressInterval = 80;
+  let elapsed2 = 0;
+  let lastProgress = 0;
+
+  const progTimer = setInterval(() => {
+    elapsed2 += progressInterval;
+    const ratio = elapsed2 / totalDuration;
+
+    // Random steps but guaranteed to reach 100% at 10s
+    const target = Math.min(100, Math.floor(ratio * 100 + (Math.random() * 4 - 1)));
+    if (target > progress) {
+      progress = target;
+      barEl.style.width = progress + '%';
+      pctEl.textContent = progress + '%';
+    }
+
+    // Update sub message
+    const newSubIdx = Math.min(subMessages.length - 1, Math.floor(ratio * subMessages.length));
+    if (newSubIdx !== subIdx) {
+      subIdx = newSubIdx;
+      subEl.textContent = subMessages[subIdx];
+    }
+
+    if (elapsed2 >= totalDuration) {
+      clearInterval(progTimer);
+      progress = 100;
+      barEl.style.width = '100%';
+      pctEl.textContent = '100%';
+      subEl.textContent = 'Chargement terminé !';
+    }
+  }, progressInterval);
+
+  // Log line ticker
+  const lineInterval = totalDuration / logLines.length;
+  const logTimer = setInterval(() => {
+    if (logIndex < logLines.length) {
+      const line = document.createElement('div');
+      const color = logLines[logIndex].includes('PASS') || logLines[logIndex].includes('OK') || logLines[logIndex].includes('validé') || logLines[logIndex].includes('prêt')
+        ? '#80ffaa' : logLines[logIndex].includes('SEC') || logLines[logIndex].includes('AUTH') || logLines[logIndex].includes('PROT')
+        ? '#ffee80' : '#40ff80';
+      line.style.color = color;
+      line.textContent = logLines[logIndex];
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+      logIndex++;
+    } else {
+      clearInterval(logTimer);
+    }
+  }, lineInterval);
+
+  // After 10s, fade out boot then fade in desktop
+  setTimeout(() => {
+    rainRunning = false;
+    clearInterval(clockInterval);
+    screen.style.transition = 'opacity 1s ease';
+    screen.style.opacity = '0';
+    const desktop = document.getElementById('desktop');
+    desktop.style.display = 'block';
+    desktop.style.opacity = '0';
+    desktop.style.transition = 'opacity 1.2s ease';
+    setTimeout(() => {
+      screen.style.display = 'none';
+      desktop.style.opacity = '1';
+    }, 1000);
+  }, 10000);
 }
 
 // ═══════════════════ WINDOW MANAGEMENT ═══════════════════
