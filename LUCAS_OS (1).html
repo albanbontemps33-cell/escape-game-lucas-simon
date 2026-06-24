@@ -1,0 +1,2096 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>SimonLab Workstation</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Tahoma, 'MS Sans Serif', Arial, sans-serif;
+  font-size: 11px;
+  overflow: hidden;
+  width: 100vw; height: 100vh;
+  background: #000;
+  user-select: none;
+}
+
+/* ═══════════════ LOGIN SCREEN ═══════════════ */
+#loginScreen {
+  position: fixed; inset: 0;
+  background: linear-gradient(180deg, #1a3a6b 0%, #0d2144 100%);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 1000;
+}
+
+.login-logo-area {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-logo-area .company {
+  color: #a8c8f0;
+  font-size: 13px;
+  letter-spacing: 3px;
+  margin-bottom: 6px;
+}
+
+.login-logo-area .title {
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.login-logo-area .sub {
+  color: #7aa8d4;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.login-card {
+  background: #d4e4f5;
+  border: 2px solid #7aa0c4;
+  width: 380px;
+  overflow: hidden;
+}
+
+.login-card-title {
+  background: linear-gradient(180deg, #1a5a9a, #0d3d70);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.login-card-body {
+  padding: 24px;
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: white;
+  border: 1px inset #a0b8d0;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+}
+
+.user-avatar {
+  width: 48px; height: 48px;
+  background: #c8ddf0;
+  border: 2px solid #7aa0c4;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.user-info .uname { font-weight: bold; font-size: 13px; color: #0d2144; }
+.user-info .urole { color: #5580a8; font-size: 10px; margin-top: 2px; }
+
+.pwd-section label {
+  display: block;
+  color: #0d2144;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.pwd-row { display: flex; gap: 6px; align-items: center; }
+
+.pwd-row input {
+  flex: 1;
+  border: 2px inset #a0b8d0;
+  background: white;
+  font-family: Tahoma, Arial;
+  font-size: 14px;
+  padding: 5px 8px;
+  outline: none;
+  letter-spacing: 4px;
+}
+
+.pwd-row input:focus { border-color: #0a6fd8; }
+
+.hint-btn-login {
+  width: 28px; height: 28px;
+  background: linear-gradient(180deg, #ffe87c, #e8a000);
+  border: 2px outset #c88000;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  color: #5a3000;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.hint-btn-login:active { border-style: inset; }
+
+.login-err {
+  color: #cc0000;
+  font-size: 11px;
+  height: 16px;
+  margin: 6px 0 10px;
+}
+
+.win-btn {
+  background: linear-gradient(180deg, #f0f0ea, #d8d4c8);
+  border: 2px outset #ffffff;
+  border-bottom-color: #808080;
+  border-right-color: #808080;
+  padding: 5px 20px;
+  font-family: Tahoma, Arial;
+  font-size: 11px;
+  cursor: pointer;
+  min-width: 80px;
+}
+
+.win-btn:active { border-style: inset; }
+.win-btn:hover { background: linear-gradient(180deg, #e8f0ff, #c8d4f0); }
+
+.win-btn-primary {
+  background: linear-gradient(180deg, #4a90d0, #1a5a9a);
+  color: white;
+  border-color: #0a3a7a;
+}
+
+.win-btn-primary:hover { background: linear-gradient(180deg, #5aa0e0, #2a6aaa); }
+
+.hint-popup-login {
+  display: none;
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,0.5);
+  align-items: center; justify-content: center;
+}
+.hint-popup-login.open { display: flex; }
+
+.hint-win {
+  background: #d4e4f5;
+  border: 2px solid #7aa0c4;
+  width: 340px;
+}
+
+.win-titlebar {
+  background: linear-gradient(180deg, #1a5a9a, #0d3d70);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.win-titlebar-left { display: flex; align-items: center; gap: 6px; }
+
+.win-close-btn {
+  background: linear-gradient(180deg, #e06050, #c03020);
+  border: 1px outset #ff8070;
+  color: white;
+  font-size: 10px;
+  width: 18px; height: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex; align-items: center; justify-content: center;
+  font-family: Tahoma;
+}
+
+.hint-win .body {
+  padding: 16px 18px;
+  background: white;
+  margin: 4px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #0d2144;
+}
+
+.hint-win .body .indice-label {
+  background: #fffbe0;
+  border: 1px solid #e8c800;
+  padding: 8px 10px;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* ═══════════════ DESKTOP ═══════════════ */
+#desktop {
+  display: none;
+  width: 100vw; height: 100vh;
+  background: #4a8a4a url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><rect width="4" height="4" fill="%234a8a4a"/><rect width="1" height="1" fill="%233d7a3d" opacity="0.4"/></svg>');
+  position: relative;
+  overflow: hidden;
+}
+
+.desktop-icons {
+  position: absolute;
+  top: 12px; left: 12px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+.desktop-icon {
+  display: flex; flex-direction: column;
+  align-items: center;
+  width: 80px;
+  padding: 4px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.desktop-icon:hover {
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.4);
+}
+
+.desktop-icon.selected {
+  background: rgba(0,80,160,0.4);
+  border-color: rgba(100,160,255,0.8);
+}
+
+.icon-img {
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  margin-bottom: 3px;
+}
+
+.icon-label {
+  color: white;
+  font-size: 11px;
+  text-align: center;
+  text-shadow: 1px 1px 2px black, -1px -1px 2px black;
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+/* ═══════════════ TASKBAR ═══════════════ */
+#taskbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 30px;
+  background: linear-gradient(180deg, #e8e4d8 0%, #d0ccc0 40%, #c4c0b4 100%);
+  border-top: 1px solid #ffffff;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  gap: 4px;
+  z-index: 50;
+}
+
+.start-btn {
+  background: linear-gradient(180deg, #5cb85c, #3a8a3a);
+  border: 2px outset #6ad06a;
+  border-bottom-color: #2a6a2a;
+  border-right-color: #2a6a2a;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  padding: 2px 10px 2px 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  font-family: Tahoma;
+}
+
+.start-btn:active { border-style: inset; }
+
+.taskbar-sep {
+  width: 1px; height: 20px;
+  background: linear-gradient(180deg, #888, #ccc, #888);
+  margin: 0 2px;
+}
+
+.taskbar-task {
+  background: linear-gradient(180deg, #c8c4b8, #dcd8cc);
+  border: 2px outset #ffffff;
+  border-bottom-color: #808078;
+  border-right-color: #808078;
+  height: 24px;
+  padding: 0 8px;
+  font-family: Tahoma;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 120px;
+}
+
+.taskbar-task:active, .taskbar-task.active { border-style: inset; background: linear-gradient(180deg, #b8b4a8, #ccc8bc); }
+
+.taskbar-clock {
+  margin-left: auto;
+  background: linear-gradient(180deg, #c0bdb4, #d4d0c8);
+  border: 1px inset #888;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: #000;
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.taskbar-exit {
+  background: linear-gradient(180deg, #e05050, #a82020);
+  border: 2px outset #ff8080;
+  border-bottom-color: #801010;
+  border-right-color: #801010;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  font-family: Tahoma;
+  padding: 2px 8px;
+  cursor: pointer;
+  height: 24px;
+  display: flex; align-items: center;
+}
+
+.taskbar-exit:active { border-style: inset; }
+
+/* ═══════════════ WINDOWS ═══════════════ */
+.win-window {
+  position: absolute;
+  background: #d4e4f5;
+  border: 2px solid #7aa0c4;
+  min-width: 300px;
+  box-shadow: 4px 4px 12px rgba(0,0,0,0.4);
+  display: none;
+  z-index: 100;
+}
+
+.win-window.open { display: block; }
+
+.win-window .win-titlebar {
+  cursor: move;
+}
+
+.win-content {
+  background: white;
+  margin: 2px;
+}
+
+/* Explorateur de dossier */
+.folder-window {
+  width: 580px;
+}
+
+.folder-toolbar {
+  background: #e8f0f8;
+  border-bottom: 1px solid #a0b8d4;
+  padding: 3px 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #336;
+}
+
+.folder-address {
+  display: flex;
+  align-items: center;
+  background: #e8f0f8;
+  border-bottom: 1px solid #a0b8d4;
+  padding: 2px 6px;
+  font-size: 11px;
+  gap: 4px;
+}
+
+.folder-address input {
+  flex: 1;
+  border: 1px inset #a0b8d0;
+  background: white;
+  font-family: Tahoma;
+  font-size: 11px;
+  padding: 1px 4px;
+}
+
+.folder-body {
+  display: flex;
+  min-height: 300px;
+}
+
+.folder-sidebar {
+  width: 140px;
+  background: #d0e4f8;
+  border-right: 1px solid #a0b8d4;
+  padding: 8px;
+  font-size: 11px;
+}
+
+.folder-sidebar .sidebar-section {
+  margin-bottom: 10px;
+}
+
+.folder-sidebar .sidebar-title {
+  font-weight: bold;
+  color: #1a3a6b;
+  font-size: 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #a0b8d4;
+  padding-bottom: 2px;
+}
+
+.folder-sidebar .sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px;
+  cursor: pointer;
+  color: #003;
+}
+
+.folder-sidebar .sidebar-item:hover { background: #c0d8f0; }
+
+.folder-grid {
+  flex: 1;
+  padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-content: flex-start;
+}
+
+.folder-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80px;
+  padding: 4px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.folder-icon:hover { background: #deeeff; border-color: #4a90d0; }
+.folder-icon.selected { background: #b8d8ff; border-color: #1a6aD0; }
+
+.folder-icon .ficon { font-size: 36px; margin-bottom: 4px; }
+.folder-icon .fname {
+  font-size: 11px;
+  text-align: center;
+  color: #000;
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+.folder-statusbar {
+  background: #d4e4f5;
+  border-top: 1px solid #a0b8d4;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: #336;
+  display: flex;
+  gap: 20px;
+}
+
+/* ═══════════════ LECTEUR VIDÉO ═══════════════ */
+.video-window {
+  width: 520px;
+}
+
+.video-container {
+  background: #000;
+  position: relative;
+  padding-top: 56%;
+}
+
+.video-container video,
+.video-container .video-placeholder {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+}
+
+.video-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-size: 13px;
+  gap: 8px;
+}
+
+.video-controls {
+  background: #1a1a1a;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vid-btn {
+  background: #333;
+  border: 1px outset #555;
+  color: white;
+  font-size: 12px;
+  width: 28px; height: 24px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.vid-btn:active { border-style: inset; }
+
+.vid-progress {
+  flex: 1;
+  height: 8px;
+  background: #444;
+  border: 1px inset #222;
+  cursor: pointer;
+  position: relative;
+}
+
+.vid-prog-fill {
+  height: 100%;
+  background: #4a90d0;
+  width: 0%;
+  pointer-events: none;
+}
+
+.vid-time {
+  color: #aaa;
+  font-size: 10px;
+  font-family: monospace;
+  min-width: 70px;
+  text-align: right;
+}
+
+.video-info {
+  background: #f0f8ff;
+  border-top: 1px solid #a0b8d4;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: #336;
+}
+
+/* ═══════════════ FENÊTRE ACCÈS REFUSÉ ═══════════════ */
+.access-window {
+  width: 400px;
+}
+
+.access-body {
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.access-icon { font-size: 40px; flex-shrink: 0; }
+
+.access-text h3 { color: #cc0000; margin-bottom: 8px; font-size: 13px; }
+.access-text p { font-size: 11px; color: #333; line-height: 1.6; margin-bottom: 10px; }
+
+.access-btns {
+  padding: 8px 20px 16px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ═══════════════ FENÊTRE MINI-JEU ═══════════════ */
+.game-window {
+  width: 640px;
+}
+
+.game-titlebar-info {
+  font-size: 10px;
+  color: #a8c8f0;
+}
+
+#gameCanvas {
+  display: block;
+  width: 640px;
+  height: 480px;
+  image-rendering: pixelated;
+}
+
+.game-help {
+  background: #1a1a2a;
+  color: #88aacc;
+  padding: 4px 10px;
+  font-size: 10px;
+  display: flex;
+  gap: 16px;
+}
+
+/* ═══════════════ FENÊTRE ADMIN (notes du père) ═══════════════ */
+.admin-window {
+  width: 560px;
+}
+
+.admin-body {
+  padding: 16px 20px;
+  max-height: 400px;
+  overflow-y: auto;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #1a1a2a;
+}
+
+.admin-body h3 {
+  color: #8b0000;
+  border-bottom: 1px solid #d4a0a0;
+  padding-bottom: 4px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.admin-body .entry {
+  border-left: 3px solid #d4a0a0;
+  padding-left: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-body .entry .date {
+  font-weight: bold;
+  color: #8b0000;
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+
+.admin-body .entry.critical {
+  border-color: #8b0000;
+  background: #fff5f5;
+  padding: 10px 12px;
+}
+
+/* ═══════════════ EXIT POPUP ═══════════════ */
+#exitPopup {
+  display: none;
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.6);
+  align-items: center; justify-content: center;
+}
+#exitPopup.open { display: flex; }
+
+.exit-win {
+  background: #d4e4f5;
+  border: 2px solid #7aa0c4;
+  width: 360px;
+}
+
+.exit-win .body {
+  padding: 16px;
+}
+
+.exit-win input {
+  width: 100%;
+  border: 2px inset #a0b8d0;
+  background: white;
+  font-family: Tahoma;
+  font-size: 13px;
+  padding: 5px 8px;
+  letter-spacing: 4px;
+  margin: 8px 0;
+  outline: none;
+}
+
+.exit-win .btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ LOGIN ═══════════ -->
+<div id="loginScreen">
+  <div class="login-logo-area">
+    <div class="company">LABORATOIRE DE RECHERCHES NEUROLOGIQUES</div>
+    <div class="title">SimonLab</div>
+    <div class="sub">Poste de travail scientifique — Accès sécurisé</div>
+  </div>
+
+  <div class="login-card">
+    <div class="login-card-title">
+      <span>🔒</span> Ouverture de session Windows
+    </div>
+    <div class="login-card-body">
+      <div class="user-row">
+        <div class="user-avatar">🔬</div>
+        <div class="user-info">
+          <div class="uname">Equipe_Scientifique</div>
+          <div class="urole">Laboratoire Simon — Niveau d'accès : Confidentiel</div>
+        </div>
+      </div>
+      <div class="pwd-section">
+        <label for="loginPwd">Mot de passe :</label>
+        <div class="pwd-row">
+          <input type="password" id="loginPwd" maxlength="20" autocomplete="off">
+          <button class="hint-btn-login" id="hintBtnLogin" title="Indice">?</button>
+        </div>
+      </div>
+      <div class="login-err" id="loginErr"></div>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="win-btn win-btn-primary" id="loginBtn">OK</button>
+        <button class="win-btn" onclick="document.getElementById('loginPwd').value=''">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="color:#4a78a8; font-size:10px; margin-top:16px; text-align:center;">
+    © 2004 Simon Research Group. Tous droits réservés.
+  </div>
+</div>
+
+<!-- Popup indice login -->
+<div class="hint-popup-login" id="hintPopupLogin">
+  <div class="hint-win">
+    <div class="win-titlebar">
+      <div class="win-titlebar-left">💡 Indice de récupération</div>
+      <button class="win-close-btn" id="hintCloseLogin">✕</button>
+    </div>
+    <div class="body">
+      <p>Le Dr. Simon a configuré ce mot de passe en référence à l'endroit où il rêvait d'emmener sa famille après le succès du Protocole Éveil.</p>
+      <div class="indice-label">
+        « Un paradis tropical. Une île volcanique. Le bout du monde. »<br>
+        <span style="font-size:10px;color:#888">— Agenda du Dr. Simon, 14 mars</span>
+      </div>
+      <div style="text-align:right; margin-top:12px;">
+        <button class="win-btn" onclick="document.getElementById('hintPopupLogin').classList.remove('open')">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ DESKTOP ═══════════ -->
+<div id="desktop">
+
+  <!-- Icônes du bureau -->
+  <div class="desktop-icons">
+    <div class="desktop-icon" id="iconPatient" ondblclick="openFolder('patient')">
+      <div class="icon-img">📁</div>
+      <div class="icon-label">Dossier<br>Patient 001</div>
+    </div>
+    <div class="desktop-icon" id="iconAdmin" ondblclick="openAdminAttempt()">
+      <div class="icon-img">🔒</div>
+      <div class="icon-label">Dossier<br>Admin</div>
+    </div>
+    <div class="desktop-icon" id="iconPatient2" style="display:none;" ondblclick="openPatient2Attempt()">
+      <div class="icon-img">🔐</div>
+      <div class="icon-label">Dossier<br>Patient 001<br>Part.2</div>
+    </div>
+    <div class="desktop-icon" ondblclick="alert('Accès refusé : corbeille système.')">
+      <div class="icon-img">🗑️</div>
+      <div class="icon-label">Corbeille</div>
+    </div>
+  </div>
+
+  <!-- ══ FENÊTRE : Dossier Patient ══ -->
+  <div class="win-window folder-window" id="winPatient" style="top:60px; left:100px;">
+    <div class="win-titlebar" id="winPatientBar">
+      <div class="win-titlebar-left">📁 Dossier Patient 001</div>
+      <button class="win-close-btn" onclick="closeWin('winPatient')">✕</button>
+    </div>
+    <div class="win-content">
+      <div class="folder-toolbar">
+        <span>Fichier</span><span>Edition</span><span>Affichage</span><span>Favoris</span><span>Outils</span><span>?</span>
+      </div>
+      <div class="folder-address">
+        <span>📂</span>
+        <input type="text" value="C:\SimonLab\Dossiers\Patient_001" readonly>
+        <button class="win-btn" style="padding:1px 8px;font-size:10px;">Atteindre</button>
+      </div>
+      <div class="folder-body">
+        <div class="folder-sidebar">
+          <div class="sidebar-section">
+            <div class="sidebar-title">Tâches fichiers</div>
+            <div class="sidebar-item">📄 Nouveau fichier</div>
+            <div class="sidebar-item">📋 Copier</div>
+            <div class="sidebar-item">🗑️ Supprimer</div>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-title">Emplacements</div>
+            <div class="sidebar-item">🖥️ Bureau</div>
+            <div class="sidebar-item">📁 Mes documents</div>
+            <div class="sidebar-item">🖨️ Imprimante</div>
+          </div>
+        </div>
+        <div class="folder-grid">
+          <div class="folder-icon" ondblclick="openVideo()">
+            <div class="ficon">🎬</div>
+            <div class="fname">enregistrement_patient_001.mp4</div>
+          </div>
+        </div>
+      </div>
+      <div class="folder-statusbar">
+        <span>1 objet</span>
+        <span>Taille : 248 Mo</span>
+        <span>Lecteur local (C:)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FENÊTRE : Lecteur vidéo ══ -->
+  <div class="win-window video-window" id="winVideo" style="top:80px; left:160px;">
+    <div class="win-titlebar" id="winVideoBar">
+      <div class="win-titlebar-left">▶ enregistrement_patient_001.mp4 — Lecteur multimédia</div>
+      <button class="win-close-btn" onclick="closeWin('winVideo'); pauseVideo();">✕</button>
+    </div>
+    <div class="win-content">
+      <div class="video-container">
+        <video id="mainVideo" style="position:absolute;top:0;left:0;width:100%;height:100%;">
+          <source src="enregistrement_patient_001.mp4" type="video/mp4">
+        </video>
+        <div class="video-placeholder" id="videoPlaceholder">
+          <div style="font-size:48px">🎬</div>
+          <div style="color:#888;font-size:12px;">Placez le fichier <strong style="color:#aaa">enregistrement_patient_001.mp4</strong><br>dans le même dossier que ce fichier HTML</div>
+        </div>
+      </div>
+      <div class="video-controls">
+        <button class="vid-btn" id="vidPlay" onclick="toggleVideo()">▶</button>
+        <button class="vid-btn" onclick="stopVideo()">■</button>
+        <div class="vid-progress" id="vidProgress" onclick="seekVideo(event)">
+          <div class="vid-prog-fill" id="vidFill"></div>
+        </div>
+        <div class="vid-time" id="vidTime">0:00 / 0:00</div>
+        <button class="vid-btn" onclick="toggleMute()">🔊</button>
+      </div>
+      <div class="video-info">
+        📄 enregistrement_patient_001.mp4 &nbsp;|&nbsp; Journal vidéo — Équipe de recherche SimonLab &nbsp;|&nbsp; Confidentiel
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FENÊTRE : Accès refusé ══ -->
+  <div class="win-window access-window" id="winAccess" style="top:200px; left:300px;">
+    <div class="win-titlebar">
+      <div class="win-titlebar-left">⛔ Accès refusé</div>
+      <button class="win-close-btn" onclick="closeWin('winAccess')">✕</button>
+    </div>
+    <div class="win-content">
+      <div class="access-body">
+        <div class="access-icon">🔒</div>
+        <div class="access-text">
+          <h3>Accès au Dossier Admin refusé</h3>
+          <p>Ce dossier est protégé par le système de sécurité SimonLab.<br><br>
+          Pour y accéder, vous devez compléter le <strong>Protocole de Vérification</strong> en utilisant les plaques d'identification du laboratoire.</p>
+        </div>
+      </div>
+      <div class="access-btns">
+        <button class="win-btn win-btn-primary" onclick="closeWin('winAccess'); openGame();">Lancer le protocole</button>
+        <button class="win-btn" onclick="closeWin('winAccess')">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FENÊTRE : Mini-jeu ══ -->
+  <div class="win-window game-window" id="winGame" style="top:40px; left:80px;">
+    <div class="win-titlebar" id="winGameBar">
+      <div class="win-titlebar-left">🔬 Protocole de Vérification — SimonLab Security v1.2</div>
+      <div class="game-titlebar-info" id="gameStatusBar">Plaques déposées : 0/6</div>
+      <button class="win-close-btn" onclick="closeWin('winGame')">✕</button>
+    </div>
+    <canvas id="gameCanvas" width="640" height="480"></canvas>
+    <div class="game-help">
+      <span>⬆⬇⬅➡ ou ZQSD : Déplacer</span>
+      <span>E ou Entrée : Ramasser / Déposer</span>
+      <span>Inventaire : <span id="gameInvDisplay">vide</span></span>
+    </div>
+  </div>
+
+  <!-- ══ FENÊTRE : Dossier Admin (déverrouillé) ══ -->
+  <div class="win-window admin-window" id="winAdmin" style="top:60px; left:120px;">
+    <div class="win-titlebar" id="winAdminBar">
+      <div class="win-titlebar-left">📂 Dossier Admin — Notes personnelles Dr. É. Simon</div>
+      <button class="win-close-btn" onclick="closeWin('winAdmin')">✕</button>
+    </div>
+    <div class="win-content">
+      <div class="folder-toolbar">
+        <span style="color:#8b0000; font-weight:bold;">⚠ CONTENU CONFIDENTIEL — NIVEAU ALPHA</span>
+      </div>
+      <div class="admin-body">
+        <h3>Notes personnelles — Dr. Éric Simon</h3>
+
+        <div class="entry">
+          <div class="date">01 SEPTEMBRE 2023</div>
+          <p>Première injection réalisée ce matin. Le sujet a bien réagi. Je suis convaincu que le Protocole Éveil va tout changer. Pour lui. Pour nous. Je veux juste qu'il soit exceptionnel. Qu'il soit ce que j'aurais pu être.</p>
+        </div>
+
+        <div class="entry">
+          <div class="date">18 NOVEMBRE 2023</div>
+          <p>Les résultats cognitifs dépassent toutes nos projections. Mémoire, analyse, anticipation — tout s'est amplifié de façon spectaculaire. Mais Nathalie dit qu'il ne la regarde plus de la même façon. Je lui ai dit que c'est temporaire. Je crois que je mens.</p>
+        </div>
+
+        <div class="entry">
+          <div class="date">04 JANVIER 2024</div>
+          <p>Vernet a déposé un rapport officiel. Il veut arrêter le protocole. Il parle de signalement aux autorités. J'ai convaincu les autres de continuer. Vernet n'est plus dans l'équipe. Le laboratoire est à moi. Les décisions me reviennent.</p>
+        </div>
+
+        <div class="entry">
+          <div class="date">22 JANVIER 2024</div>
+          <p>Il s'est échappé dans les sous-sols. Il connaît chaque recoin, chaque conduit, chaque angle mort. Nous avons verrouillé les accès. Nathalie refuse d'appeler les secours. Elle dit que c'est encore notre fils. Elle a tort. Ce n'est plus lui.</p>
+        </div>
+
+        <div class="entry critical">
+          <div class="date">14 MARS 2024 — DERNIÈRE ENTRÉE</div>
+          <p><strong style="color:#8b0000;">C'est moi qui ai créé ça.</strong><br><br>
+          Il ne ressent plus rien. Il n'a plus peur. Il n'a plus d'empathie. Il lui reste son intelligence — décuplée, acérée, froide — et quelque chose d'autre. Quelque chose de primitif. Il évalue. Il observe. Il chasse.<br><br>
+          L'équipe scientifique ne répond plus. Je sais ce que ça signifie.<br><br>
+          Si vous lisez ces notes : <strong style="color:#8b0000;">ne descendez pas dans les sous-sols.</strong><br>
+          Ce n'est plus mon fils. C'est quelque chose que j'ai fabriqué.<br><br>
+          <em>Dieu me pardonne.</em></p>
+        </div>
+      </div>
+      <div class="folder-statusbar">
+        <span>Dernière modification : 14/03/2024 à 03h47</span>
+        <span>Auteur : Dr. É. Simon</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ NOTIFICATION LUCAS ══ -->
+  <div id="lucasNotif" style="display:none; position:fixed; bottom:50px; right:20px; z-index:5000;
+    width:320px; background:#1a2a3a; border:2px solid #4a8abf; box-shadow:0 4px 20px rgba(0,0,0,0.7);
+    font-family:Tahoma,Arial; animation: slideInNotif 0.4s ease-out;">
+    <style>
+      @keyframes slideInNotif {
+        from { transform:translateX(360px); opacity:0; }
+        to   { transform:translateX(0);     opacity:1; }
+      }
+      @keyframes pulse {
+        0%,100% { box-shadow:0 4px 20px rgba(74,138,191,0.4); }
+        50%      { box-shadow:0 4px 30px rgba(74,138,191,0.9); }
+      }
+    </style>
+    <div style="background:linear-gradient(90deg,#1a5a9a,#0d3d70); padding:6px 10px; display:flex; align-items:center; justify-content:space-between;">
+      <div style="color:white; font-size:11px; font-weight:bold; display:flex; align-items:center; gap:6px;">
+        <span style="font-size:16px;">💬</span> Nouveau message — Lucas_S
+      </div>
+      <button onclick="closeLucasNotif()" style="background:#c03020;border:none;color:white;font-size:10px;width:16px;height:16px;cursor:pointer;font-weight:bold;">✕</button>
+    </div>
+    <div style="padding:14px 16px;">
+      <div style="color:#7ad4ff; font-size:10px; margin-bottom:8px;">📅 Aujourd'hui à <span id="notifTime"></span></div>
+      <div style="color:#e0eeff; font-size:12px; line-height:1.8;">
+        Salut... j'espère que vous êtes encore là.<br><br>
+        Je voulais vous donner un cadeau — <strong style="color:#ffd080;">mon jouet préféré</strong>. J'ai écrit un code dessus qui pourrait vous être utile...<br><br>
+        Mais <strong style="color:#ff6060;">il est arrivé</strong>, alors je suis parti me cacher. J'ai fait tomber mon jouet dans la salle où il y a les toilettes.<br><br>
+        <em style="color:#aaccee;">Allez le chercher. Il vous sera très utile.</em>
+      </div>
+      <div style="margin-top:14px; display:flex; justify-content:flex-end;">
+        <button onclick="closeLucasNotif()" style="background:linear-gradient(180deg,#4a90d0,#1a5a9a);border:2px outset #6ab0f0;border-bottom-color:#0a3a7a;color:white;font-family:Tahoma;font-size:11px;padding:4px 16px;cursor:pointer;">
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ POPUP CODE Patient 001 Part.2 ══ -->
+  <div id="patient2CodePopup" style="display:none; position:fixed; inset:0; z-index:8000; background:rgba(0,0,0,0.6); align-items:center; justify-content:center;">
+    <div style="background:#d4e4f5; border:2px solid #7aa0c4; width:380px; font-family:Tahoma,Arial;">
+      <div style="background:linear-gradient(180deg,#1a5a9a,#0d3d70); color:white; font-size:12px; font-weight:bold; padding:5px 10px; display:flex; align-items:center; justify-content:space-between;">
+        <span>🔐 Accès protégé — Dossier Patient 001 Part.2</span>
+        <button onclick="closePatient2Code()" style="background:#c03020;border:1px outset #ff8070;color:white;font-size:10px;width:18px;height:16px;cursor:pointer;font-weight:bold;">✕</button>
+      </div>
+      <div style="padding:20px;">
+        <div style="display:flex; gap:12px; align-items:center; margin-bottom:16px;">
+          <span style="font-size:36px;">🔐</span>
+          <div>
+            <div style="font-weight:bold; color:#0d2144; font-size:13px;">Accès restreint</div>
+            <div style="color:#336; font-size:11px; margin-top:4px; line-height:1.6;">Ce dossier est protégé.<br>Entrez le code trouvé sur le jouet de Lucas.</div>
+          </div>
+        </div>
+        <label style="display:block; font-weight:bold; color:#0d2144; font-size:11px; margin-bottom:5px;">Code d'accès :</label>
+        <input type="password" id="patient2CodeInput" maxlength="20" autocomplete="off"
+          style="width:100%; border:2px inset #a0b8d0; background:white; font-family:Tahoma; font-size:14px; padding:5px 8px; letter-spacing:3px; outline:none; box-sizing:border-box;"
+          onkeydown="if(event.key==='Enter') checkPatient2Code()">
+        <div id="patient2CodeErr" style="color:#cc0000; font-size:11px; height:16px; margin:6px 0;"></div>
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <button class="win-btn win-btn-primary" onclick="checkPatient2Code()">OK</button>
+          <button class="win-btn" onclick="closePatient2Code()">Annuler</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FENÊTRE : Dossier Patient 001 Part.2 ══ -->
+  <div class="win-window folder-window" id="winPatient2" style="top:80px; left:140px;">
+    <div class="win-titlebar" id="winPatient2Bar">
+      <div class="win-titlebar-left">📂 Dossier Patient 001 — Part.2</div>
+      <button class="win-close-btn" onclick="closeWin('winPatient2')">✕</button>
+    </div>
+    <div class="win-content">
+      <div class="folder-toolbar">
+        <span>Fichier</span><span>Edition</span><span>Affichage</span><span>Favoris</span><span>Outils</span><span>?</span>
+      </div>
+      <div class="folder-address">
+        <span>📂</span>
+        <input type="text" value="C:\SimonLab\Dossiers\Patient_001\Part2" readonly>
+        <button class="win-btn" style="padding:1px 8px;font-size:10px;">Atteindre</button>
+      </div>
+      <div class="folder-body">
+        <div class="folder-sidebar">
+          <div class="sidebar-section">
+            <div class="sidebar-title">Tâches fichiers</div>
+            <div class="sidebar-item">📄 Nouveau fichier</div>
+            <div class="sidebar-item">📋 Copier</div>
+            <div class="sidebar-item">🗑️ Supprimer</div>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-title">Emplacements</div>
+            <div class="sidebar-item">🖥️ Bureau</div>
+            <div class="sidebar-item">📁 Mes documents</div>
+          </div>
+        </div>
+        <div class="folder-grid">
+          <div class="folder-icon" ondblclick="openVideo2()">
+            <div class="ficon">🎬</div>
+            <div class="fname">enregistrement_patient_001_part2.mp4</div>
+          </div>
+        </div>
+      </div>
+      <div class="folder-statusbar">
+        <span>1 objet</span>
+        <span>Taille : 312 Mo</span>
+        <span>Lecteur local (C:)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FENÊTRE : Lecteur vidéo 2 ══ -->
+  <div class="win-window video-window" id="winVideo2" style="top:80px; left:200px;">
+    <div class="win-titlebar" id="winVideo2Bar">
+      <div class="win-titlebar-left">▶ enregistrement_patient_001_part2.mp4 — Lecteur multimédia</div>
+      <button class="win-close-btn" onclick="closeWin('winVideo2'); pauseVideo2();">✕</button>
+    </div>
+    <div class="win-content">
+      <div class="video-container">
+        <video id="mainVideo2" style="position:absolute;top:0;left:0;width:100%;height:100%;">
+          <source src="enregistrement_patient_001_part2.mp4" type="video/mp4">
+        </video>
+        <div class="video-placeholder" id="videoPlaceholder2">
+          <div style="font-size:48px">🎬</div>
+          <div style="color:#888;font-size:12px;">Placez le fichier <strong style="color:#aaa">enregistrement_patient_001_part2.mp4</strong><br>dans le même dossier que ce fichier HTML</div>
+        </div>
+      </div>
+      <div class="video-controls">
+        <button class="vid-btn" id="vidPlay2" onclick="toggleVideo2()">▶</button>
+        <button class="vid-btn" onclick="stopVideo2()">■</button>
+        <div class="vid-progress" id="vidProgress2" onclick="seekVideo2(event)">
+          <div class="vid-prog-fill" id="vidFill2"></div>
+        </div>
+        <div class="vid-time" id="vidTime2">0:00 / 0:00</div>
+        <button class="vid-btn" onclick="toggleMute2()">🔊</button>
+      </div>
+      <div class="video-info">
+        📄 enregistrement_patient_001_part2.mp4 &nbsp;|&nbsp; Journal vidéo — Équipe de recherche SimonLab &nbsp;|&nbsp; ⚠ CONFIDENTIEL NIVEAU ALPHA
+      </div>
+    </div>
+  </div>
+  <div id="taskbar">
+    <button class="start-btn">🪟 Démarrer</button>
+    <div class="taskbar-sep"></div>
+    <div id="taskbarTasks"></div>
+    <div class="taskbar-sep"></div>
+    <div class="taskbar-clock" id="tbClock">00:00</div>
+    <button class="taskbar-exit" onclick="openExitPopup()">⬡ ADMIN</button>
+  </div>
+</div>
+
+<!-- EXIT POPUP -->
+<div id="exitPopup">
+  <div class="exit-win">
+    <div class="win-titlebar">
+      <div class="win-titlebar-left">🔐 Déverrouillage administrateur</div>
+      <button class="win-close-btn" onclick="document.getElementById('exitPopup').classList.remove('open')">✕</button>
+    </div>
+    <div class="body">
+      <p>Code administrateur requis pour quitter le mode sécurisé.</p>
+      <input type="password" id="exitCode" maxlength="20" placeholder="Code admin" autocomplete="off">
+      <div style="color:#cc0000; font-size:11px; height:16px;" id="exitErr"></div>
+      <div class="btns">
+        <button class="win-btn" onclick="document.getElementById('exitPopup').classList.remove('open');document.getElementById('exitCode').value='';">Annuler</button>
+        <button class="win-btn win-btn-primary" onclick="tryExit()">Confirmer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════ CONFIG ═══════════════════
+const LOGIN_PWD   = "TAHITI";
+const ADMIN_CODE  = "SIMON2024EXIT";
+
+// ═══════════════════ KIOSK ═══════════════════
+document.addEventListener('keydown', e => {
+  if (['F5','F11','F12'].includes(e.key) ||
+      (e.ctrlKey && 'wrtunlp'.includes(e.key.toLowerCase())) ||
+      (e.altKey && e.key==='F4')) {
+    e.preventDefault();
+  }
+});
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('click', function fs() {
+  document.documentElement.requestFullscreen?.().catch(()=>{});
+  document.removeEventListener('click', fs);
+}, {once:true});
+
+// ═══════════════════ CLOCK ═══════════════════
+setInterval(() => {
+  const d = new Date();
+  document.getElementById('tbClock').textContent =
+    String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}, 1000);
+
+// ═══════════════════ LOGIN ═══════════════════
+document.getElementById('hintBtnLogin').addEventListener('click', () =>
+  document.getElementById('hintPopupLogin').classList.add('open'));
+document.getElementById('hintCloseLogin').addEventListener('click', () =>
+  document.getElementById('hintPopupLogin').classList.remove('open'));
+
+document.getElementById('loginPwd').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+
+function doLogin() {
+  const v = document.getElementById('loginPwd').value.trim().toUpperCase();
+  if (v === LOGIN_PWD) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('desktop').style.display = 'block';
+  } else {
+    const err = document.getElementById('loginErr');
+    err.textContent = '⚠ Le mot de passe est incorrect. Veuillez réessayer.';
+    document.getElementById('loginPwd').value = '';
+    setTimeout(() => { err.textContent = ''; }, 3000);
+  }
+}
+
+// ═══════════════════ WINDOW MANAGEMENT ═══════════════════
+const windows = ['winPatient','winVideo','winAccess','winGame','winAdmin','winPatient2','winVideo2'];
+const winTitles = {
+  winPatient:  '📁 Dossier Patient 001',
+  winVideo:    '▶ Lecteur vidéo',
+  winAccess:   '⛔ Accès refusé',
+  winGame:     '🔬 Protocole Vérification',
+  winAdmin:    '📂 Dossier Admin',
+  winPatient2: '📂 Dossier Patient 001 Part.2',
+  winVideo2:   '▶ Lecteur vidéo (Part.2)',
+};
+
+function openWin(id) {
+  const w = document.getElementById(id);
+  w.classList.add('open');
+  w.style.zIndex = getTopZ();
+  updateTaskbar();
+}
+
+function closeWin(id) {
+  document.getElementById(id).classList.remove('open');
+  updateTaskbar();
+}
+
+function getTopZ() {
+  let max = 100;
+  windows.forEach(id => {
+    const z = parseInt(document.getElementById(id).style.zIndex || 100);
+    if (z > max) max = z;
+  });
+  return max + 1;
+}
+
+function focusWin(id) {
+  document.getElementById(id).style.zIndex = getTopZ();
+}
+
+function updateTaskbar() {
+  const area = document.getElementById('taskbarTasks');
+  area.innerHTML = '';
+  windows.forEach(id => {
+    const w = document.getElementById(id);
+    if (w.classList.contains('open')) {
+      const btn = document.createElement('button');
+      btn.className = 'taskbar-task';
+      btn.textContent = winTitles[id] || id;
+      btn.onclick = () => focusWin(id);
+      area.appendChild(btn);
+    }
+  });
+}
+
+// Draggable windows
+windows.forEach(id => {
+  const win = document.getElementById(id);
+  const bar = win.querySelector('.win-titlebar');
+  if (!bar) return;
+  let dragging = false, ox = 0, oy = 0;
+  bar.addEventListener('mousedown', e => {
+    dragging = true;
+    ox = e.clientX - win.offsetLeft;
+    oy = e.clientY - win.offsetTop;
+    focusWin(id);
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    win.style.left = (e.clientX - ox) + 'px';
+    win.style.top  = (e.clientY - oy) + 'px';
+  });
+  document.addEventListener('mouseup', () => { dragging = false; });
+});
+
+// ═══════════════════ FOLDER / VIDEO ═══════════════════
+function openFolder(type) {
+  if (type === 'patient') openWin('winPatient');
+}
+
+function openAdminAttempt() {
+  if (!gameCompleted) openWin('winAccess');
+  else openWin('winAdmin');
+}
+
+function openVideo() {
+  openWin('winVideo');
+  const vid = document.getElementById('mainVideo');
+  vid.addEventListener('error', () => {
+    document.getElementById('videoPlaceholder').style.display = 'flex';
+    vid.style.display = 'none';
+  });
+  vid.addEventListener('loadeddata', () => {
+    document.getElementById('videoPlaceholder').style.display = 'none';
+    vid.style.display = 'block';
+    // Plein écran auto
+    vid.requestFullscreen?.() || vid.webkitRequestFullscreen?.();
+  });
+  if (vid.readyState >= 2) {
+    document.getElementById('videoPlaceholder').style.display = 'none';
+    vid.style.display = 'block';
+    vid.requestFullscreen?.() || vid.webkitRequestFullscreen?.();
+  }
+  vid.addEventListener('timeupdate', updateVideoProgress);
+  vid.addEventListener('durationchange', updateVideoProgress);
+}
+
+function openVideo2() {
+  openWin('winVideo2');
+  const vid = document.getElementById('mainVideo2');
+  vid.addEventListener('error', () => {
+    document.getElementById('videoPlaceholder2').style.display = 'flex';
+    vid.style.display = 'none';
+  });
+  vid.addEventListener('loadeddata', () => {
+    document.getElementById('videoPlaceholder2').style.display = 'none';
+    vid.style.display = 'block';
+    vid.requestFullscreen?.() || vid.webkitRequestFullscreen?.();
+  });
+  if (vid.readyState >= 2) {
+    document.getElementById('videoPlaceholder2').style.display = 'none';
+    vid.style.display = 'block';
+    vid.requestFullscreen?.() || vid.webkitRequestFullscreen?.();
+  }
+  vid.addEventListener('timeupdate', updateVideoProgress2);
+  vid.addEventListener('durationchange', updateVideoProgress2);
+}
+
+function toggleVideo2() {
+  const vid = document.getElementById('mainVideo2');
+  if (vid.paused) { vid.play(); document.getElementById('vidPlay2').textContent = '⏸'; }
+  else { vid.pause(); document.getElementById('vidPlay2').textContent = '▶'; }
+}
+
+function stopVideo2() {
+  const vid = document.getElementById('mainVideo2');
+  vid.pause(); vid.currentTime = 0;
+  document.getElementById('vidPlay2').textContent = '▶';
+  updateVideoProgress2();
+}
+
+function pauseVideo2() {
+  const vid = document.getElementById('mainVideo2');
+  vid.pause();
+  document.getElementById('vidPlay2').textContent = '▶';
+}
+
+function toggleMute2() {
+  const vid = document.getElementById('mainVideo2');
+  vid.muted = !vid.muted;
+}
+
+function seekVideo2(e) {
+  const vid = document.getElementById('mainVideo2');
+  if (!vid.duration) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  vid.currentTime = ((e.clientX - rect.left) / rect.width) * vid.duration;
+}
+
+function updateVideoProgress2() {
+  const vid = document.getElementById('mainVideo2');
+  if (!vid.duration) return;
+  const pct = (vid.currentTime / vid.duration) * 100;
+  document.getElementById('vidFill2').style.width = pct + '%';
+  const fmt = t => String(Math.floor(t/60)).padStart(1,'0') + ':' + String(Math.floor(t%60)).padStart(2,'0');
+  document.getElementById('vidTime2').textContent = fmt(vid.currentTime) + ' / ' + fmt(vid.duration);
+}
+
+// ── NOTIFICATION LUCAS ──
+function showLucasNotif() {
+  const notif = document.getElementById('lucasNotif');
+  const now = new Date();
+  document.getElementById('notifTime').textContent =
+    String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  notif.style.display = 'block';
+}
+
+function closeLucasNotif() {
+  document.getElementById('lucasNotif').style.display = 'none';
+  // Révèle le dossier Patient 001 Part.2 sur le bureau
+  document.getElementById('iconPatient2').style.display = 'flex';
+}
+
+// ── PATIENT 001 PART.2 ──
+function openPatient2Attempt() {
+  const popup = document.getElementById('patient2CodePopup');
+  popup.style.display = 'flex';
+  setTimeout(() => document.getElementById('patient2CodeInput').focus(), 50);
+}
+
+function closePatient2Code() {
+  document.getElementById('patient2CodePopup').style.display = 'none';
+  document.getElementById('patient2CodeInput').value = '';
+  document.getElementById('patient2CodeErr').textContent = '';
+}
+
+function checkPatient2Code() {
+  const v = document.getElementById('patient2CodeInput').value.trim().toLowerCase();
+  if (v === 'lucas-2004') {
+    closePatient2Code();
+    openWin('winPatient2');
+  } else {
+    const err = document.getElementById('patient2CodeErr');
+    err.textContent = '⚠ Code incorrect. Cherchez sur le jouet de Lucas.';
+    document.getElementById('patient2CodeInput').value = '';
+    setTimeout(() => { err.textContent = ''; }, 3000);
+  }
+}
+
+function toggleVideo() {
+  const vid = document.getElementById('mainVideo');
+  if (vid.paused) { vid.play(); document.getElementById('vidPlay').textContent = '⏸'; }
+  else { vid.pause(); document.getElementById('vidPlay').textContent = '▶'; }
+}
+
+function stopVideo() {
+  const vid = document.getElementById('mainVideo');
+  vid.pause(); vid.currentTime = 0;
+  document.getElementById('vidPlay').textContent = '▶';
+  updateVideoProgress();
+}
+
+function pauseVideo() {
+  const vid = document.getElementById('mainVideo');
+  vid.pause();
+  document.getElementById('vidPlay').textContent = '▶';
+}
+
+function toggleMute() {
+  const vid = document.getElementById('mainVideo');
+  vid.muted = !vid.muted;
+}
+
+function seekVideo(e) {
+  const vid = document.getElementById('mainVideo');
+  if (!vid.duration) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  vid.currentTime = ((e.clientX - rect.left) / rect.width) * vid.duration;
+}
+
+function updateVideoProgress() {
+  const vid = document.getElementById('mainVideo');
+  if (!vid.duration) return;
+  const pct = (vid.currentTime / vid.duration) * 100;
+  document.getElementById('vidFill').style.width = pct + '%';
+  const fmt = t => String(Math.floor(t/60)).padStart(1,'0') + ':' + String(Math.floor(t%60)).padStart(2,'0');
+  document.getElementById('vidTime').textContent = fmt(vid.currentTime) + ' / ' + fmt(vid.duration);
+}
+
+// ═══════════════════ EXIT ═══════════════════
+function openExitPopup() {
+  document.getElementById('exitPopup').classList.add('open');
+  document.getElementById('exitCode').focus();
+}
+
+document.getElementById('exitCode').addEventListener('keydown', e => {
+  if (e.key === 'Enter') tryExit();
+  if (e.key === 'Escape') document.getElementById('exitPopup').classList.remove('open');
+});
+
+function tryExit() {
+  const v = document.getElementById('exitCode').value.trim().toUpperCase();
+  if (v === ADMIN_CODE) {
+    document.exitFullscreen?.();
+    document.getElementById('exitPopup').classList.remove('open');
+    document.getElementById('desktop').style.opacity = '0.3';
+    document.getElementById('desktop').style.pointerEvents = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('loginPwd').value = '';
+  } else {
+    const err = document.getElementById('exitErr');
+    err.textContent = '⚠ Code invalide.';
+    document.getElementById('exitCode').value = '';
+    setTimeout(() => { err.textContent = ''; }, 2500);
+  }
+}
+
+// ═══════════════════════════════════════════════
+//              MINI-JEU 2D PIXEL ART
+// ═══════════════════════════════════════════════
+let gameCompleted = false;
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Disable image smoothing for pixel art
+ctx.imageSmoothingEnabled = false;
+
+// ── CONSTANTES JEU ──
+const TILE = 32;
+const COLS = 20;
+const ROWS = 15;
+const W = COLS * TILE; // 640
+const H = ROWS * TILE; // 480
+
+// ── PALETTE PIXEL ART (style Undertale doux) ──
+const C = {
+  floor:      '#d8cfc4',
+  floorLine:  '#c8bfb4',
+  wall:       '#5a7a8a',
+  wallTop:    '#7aaabb',
+  wallShad:   '#3a5a6a',
+  wallLight:  '#9abbc8',
+  bg:         '#2a3a44',
+  // Plaques
+  plaqVert:   '#38c060',
+  plaqBleu:   '#3070d0',
+  plaqRouge:  '#d03030',
+  plaqJaune:  '#e0b020',
+  plaqViolet: '#8030b0',
+  plaqBlanc:  '#e8e8e8',
+  // Dossiers
+  folder:     '#e8c840',
+  folderDark: '#b89020',
+};
+
+// ── MAP (0=sol, 1=mur) ──
+// Salle du haut : cols 1-18, rows 1-6 (tout ouvert)
+// Mur central row 7 : passage col 5 (cadenas dynamique) et col 14 (toujours ouvert)
+// Salle bas GAUCHE : cols 1-4, rows 8-13 (accessible uniquement par col 5)
+// Salle bas DROITE : cols 6-18, rows 8-13 (accessible par col 14)
+// Mur vertical col 5, rows 8-13 sépare bas-gauche du reste (s'ouvre avec le cadenas)
+const map = [];
+for (let r = 0; r < ROWS; r++) {
+  map[r] = [];
+  for (let c = 0; c < COLS; c++) {
+    // Bords extérieurs = murs
+    if (r===0 || r===ROWS-1 || c===0 || c===COLS-1) { map[r][c]=1; continue; }
+    // Mur horizontal central — passages en col 5 (dynamique) et col 14
+    if (r===7 && c!==14) { map[r][c]=1; continue; }
+    // Mur vertical col 5 dans la salle du bas (isole zone gauche)
+    if (c===5 && r>7 && r<ROWS-1) { map[r][c]=1; continue; }
+    map[r][c] = 0;
+  }
+}
+
+// ── JOUEUR ──
+const player = {
+  x: 3 * TILE, y: 3 * TILE,
+  w: 20, h: 24,
+  speed: 2,
+  moving: false,
+  dir: 2, // 0=up,1=right,2=down,3=left
+  frame: 0, frameTimer: 0,
+  inventory: null,
+};
+
+// ── PLAQUES ── (pas d'emoji sur les plaques, juste la couleur)
+// Toutes accessibles dans les deux salles
+const plaques = [
+  { id:'vert',   color:C.plaqVert,   sym:'', label:'Verte',    x: 2*TILE+6,  y: 2*TILE+4,  taken:false },
+  { id:'bleu',   color:C.plaqBleu,   sym:'', label:'Bleue',    x: 4*TILE+6,  y: 4*TILE+4,  taken:false },
+  { id:'rouge',  color:C.plaqRouge,  sym:'', label:'Rouge',    x:15*TILE+6,  y: 2*TILE+4,  taken:false },
+  { id:'jaune',  color:C.plaqJaune,  sym:'', label:'Jaune',    x:16*TILE+6,  y:10*TILE+4,  taken:false },
+  { id:'violet', color:C.plaqViolet, sym:'', label:'Violette', x:13*TILE+6,  y: 4*TILE+4,  taken:false },
+  // Plaque blanche derrière le passage cadenas (salle bas gauche, inaccessible sans ouvrir le cadenas)
+  { id:'blanc',  color:C.plaqBlanc,  sym:'', label:'Blanche',  x: 3*TILE+6,  y:10*TILE+4,  taken:false },
+];
+
+// ── DOSSIERS ── (dans la zone archives à gauche, bien dans la salle, loin des murs)
+const folders = [
+  {
+    id:'chat',
+    label:'Chat',
+    sym:'🐱',
+    x: 6*TILE+4, y: 1*TILE+8,
+    accepts:['vert','bleu'],
+    deposited:[],
+    needed: 2,
+  },
+  {
+    id:'poupee',
+    label:'Poupée',
+    sym:'🪆',
+    x: 6*TILE+4, y: 3*TILE+4,
+    accepts:['rouge','violet'],
+    deposited:[],
+    needed: 2,
+  },
+  {
+    id:'jouet',
+    label:'Jouet',
+    sym:'🧸',
+    x: 6*TILE+4, y: 5*TILE,
+    accepts:['jaune','blanc'],
+    deposited:[],
+    needed: 2,
+  },
+];
+
+// ── TOUCHES ──
+const keys = {};
+document.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  if ((e.key === 'e' || e.key === 'E' || e.key === 'Enter') && document.getElementById('winGame').classList.contains('open')) {
+    interact();
+  }
+});
+document.addEventListener('keyup', e => { keys[e.key] = false; });
+
+// ── COLLISION MURS ──
+function isSolid(px, py) {
+  const margin = 2;
+  const x1 = px + margin;
+  const y1 = py + margin;
+  const x2 = px + player.w - margin;
+  const y2 = py + player.h - margin;
+  const corners = [
+    [x1, y1], [x2, y1], [x1, y2], [x2, y2]
+  ];
+  for (const [cx, cy] of corners) {
+    const col = Math.floor(cx / TILE);
+    const row = Math.floor(cy / TILE);
+    if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return true;
+    if (map[row][col] === 1) return true;
+  }
+  return false;
+}
+
+// ── PASSAGE (col 5, rangée 7) ──
+// Le passage s'ouvre après 3 plaques correctement déposées
+// Par défaut map[7][5] = 1 (mur), on l'ouvre dynamiquement
+let passageOpen = false;
+
+function countCorrectDeposits() {
+  let count = 0;
+  folders.forEach(f => count += f.deposited.length);
+  return count;
+}
+
+function checkPassage() {
+  const total = countCorrectDeposits();
+  if (!passageOpen && total >= 5) {
+    passageOpen = true;
+    map[7][5] = 0; // ouvre le passage horizontal
+    for (let r = 8; r < ROWS-1; r++) map[r][5] = 0; // ouvre le couloir vertical
+    showMsg("🔓 Le cadenas vient de s'ouvrir !");
+  }
+}
+
+// ── ÉCRAN D'ERREUR CRITIQUE ──
+function showCriticalError(plaqueName, folderName) {
+  // Overlay plein écran rouge
+  const overlay = document.createElement('div');
+  overlay.id = 'criticalErrorOverlay';
+  overlay.style.cssText = `
+    position:fixed; inset:0; z-index:99999;
+    background:#1a0000;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    font-family:'Courier New', monospace;
+    animation: flashRed 0.2s ease-in-out;
+  `;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes flashRed {
+      0%   { background:#ff0000; }
+      100% { background:#1a0000; }
+    }
+    @keyframes blink {
+      0%,100% { opacity:1; }
+      50%      { opacity:0.2; }
+    }
+  `;
+  document.head.appendChild(style);
+
+  overlay.innerHTML = `
+    <div style="color:#ff0000; font-size:72px; margin-bottom:20px; animation:blink 0.8s infinite;">⛔</div>
+    <div style="color:#ff2020; font-size:28px; font-weight:bold; letter-spacing:4px; margin-bottom:12px; text-transform:uppercase;">
+      ERREUR CRITIQUE
+    </div>
+    <div style="color:#ff6060; font-size:16px; letter-spacing:2px; margin-bottom:24px; text-transform:uppercase;">
+      PROTOCOLE DE VÉRIFICATION — VIOLATION DE SÉCURITÉ
+    </div>
+    <div style="background:#2a0000; border:2px solid #ff2020; padding:20px 32px; margin-bottom:28px; max-width:520px; text-align:center;">
+      <div style="color:#ffaaaa; font-size:13px; line-height:2;">
+        <span style="color:#ff4040;">PLAQUE&nbsp;:&nbsp;</span><strong style="color:white;">${plaqueName}</strong><br>
+        <span style="color:#ff4040;">DOSSIER CIBLE&nbsp;:&nbsp;</span><strong style="color:white;">${folderName}</strong><br>
+        <span style="color:#ff4040;">STATUT&nbsp;:&nbsp;</span><strong style="color:#ff2020;">INCOMPATIBILITÉ DÉTECTÉE</strong>
+      </div>
+    </div>
+    <div style="color:#ffcccc; font-size:12px; margin-bottom:8px;">
+      Le système de sécurité SimonLab a enregistré cette tentative.
+    </div>
+    <div style="color:#888; font-size:11px; margin-bottom:32px;">
+      Retrouvez les vraies plaques pour recommencer le protocole.
+    </div>
+    <div style="color:#ff4040; font-size:13px; letter-spacing:2px; animation:blink 1s infinite;">
+      FERMETURE DU PROTOCOLE EN COURS...
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // Ferme le jeu et reset après 3 secondes
+  setTimeout(() => {
+    document.body.removeChild(overlay);
+    closeWin('winGame');
+    resetGame();
+  }, 3000);
+}
+
+// ── RESET DU JEU ──
+function resetGame() {
+  plaques.forEach(p => { p.taken = false; });
+  folders.forEach(f => { f.deposited = []; });
+  player.x = 3 * TILE;
+  player.y = 3 * TILE;
+  player.inventory = null;
+  player.dir = 2;
+  // Ferme le passage : mur horizontal col 5 ET mur vertical col 5 bas
+  passageOpen = false;
+  map[7][5] = 1;
+  for (let r = 8; r < ROWS-1; r++) map[r][5] = 1;
+  updateInvDisplay();
+}
+
+// ── INTERACTION ──
+function interact() {
+  const px = player.x + player.w/2;
+  const py = player.y + player.h/2;
+  const range = TILE * 1.1;
+
+  // Si on a une plaque en main → essayer de déposer dans un dossier
+  if (player.inventory) {
+    for (const folder of folders) {
+      const fx = folder.x + TILE;
+      const fy = folder.y + TILE*0.7;
+      const dist = Math.hypot(px - fx, py - fy);
+      if (dist < range) {
+        // Vérifie si la plaque va dans ce dossier
+        if (folder.accepts.includes(player.inventory.id)) {
+          if (!folder.deposited.includes(player.inventory.id)) {
+            folder.deposited.push(player.inventory.id);
+            player.inventory.taken = true;
+            player.inventory = null;
+            updateInvDisplay();
+            checkPassage();
+            checkWin();
+            return;
+          } else {
+            showMsg("Cette plaque est déjà dans ce dossier !");
+          }
+        } else {
+          // MAUVAIS DOSSIER → écran d'erreur + fermeture
+          const plaqueName = 'Plaque ' + player.inventory.label;
+          const folderName = 'Dossier ' + folder.label;
+          player.inventory = null;
+          updateInvDisplay();
+          showCriticalError(plaqueName, folderName);
+        }
+        return;
+      }
+    }
+    showMsg("Pas de dossier à portée !");
+    return;
+  }
+
+  // Sinon → essayer de ramasser une plaque
+  for (const p of plaques) {
+    if (p.taken) continue;
+    const dist = Math.hypot(px - (p.x + 10), py - (p.y + 14));
+    if (dist < range) {
+      player.inventory = p;
+      updateInvDisplay();
+      showMsg("Plaque " + p.label + " ramassée !");
+      return;
+    }
+  }
+  showMsg("Rien à portée.");
+}
+
+// ── AFFICHAGE INVENTAIRE ──
+function updateInvDisplay() {
+  const el = document.getElementById('gameInvDisplay');
+  if (player.inventory) {
+    el.textContent = 'Plaque ' + player.inventory.label;
+    el.style.color = player.inventory.color;
+  } else {
+    el.textContent = 'vide';
+    el.style.color = '#88aacc';
+  }
+  let count = 0;
+  folders.forEach(f => count += f.deposited.length);
+  document.getElementById('gameStatusBar').textContent = 'Plaques déposées : ' + count + '/6';
+}
+
+// ── MESSAGE FLOTTANT ──
+let msgTimer = 0;
+let msgText = '';
+function showMsg(txt) {
+  msgText = txt;
+  msgTimer = 120;
+}
+
+// ── VICTOIRE ──
+function checkWin() {
+  const done = folders.every(f => f.deposited.length === f.needed);
+  if (done) {
+    gameCompleted = true;
+    msgText = '✓ Protocole complété !';
+    msgTimer = 300;
+    setTimeout(() => {
+      closeWin('winGame');
+      openWin('winAdmin');
+      // Notification Lucas après un léger délai
+      setTimeout(() => showLucasNotif(), 1500);
+    }, 2500);
+  }
+}
+
+// ═══════════════════ GAME LOOP ═══════════════════
+function openGame() {
+  resetGame();
+  openWin('winGame');
+  canvas.focus();
+}
+
+let lastTime = 0;
+function gameLoop(ts) {
+  requestAnimationFrame(gameLoop);
+  if (!document.getElementById('winGame').classList.contains('open')) return;
+  const dt = ts - lastTime;
+  lastTime = ts;
+
+  // ── MOUVEMENT ──
+  let dx = 0, dy = 0;
+  if (keys['ArrowUp']    || keys['z'] || keys['Z']) { dy = -player.speed; player.dir = 0; }
+  if (keys['ArrowDown']  || keys['s'] || keys['S']) { dy =  player.speed; player.dir = 2; }
+  if (keys['ArrowLeft']  || keys['q'] || keys['Q']) { dx = -player.speed; player.dir = 3; }
+  if (keys['ArrowRight'] || keys['d'] || keys['D']) { dx =  player.speed; player.dir = 1; }
+
+  player.moving = (dx !== 0 || dy !== 0);
+
+  if (dx !== 0) {
+    const nx = player.x + dx;
+    if (!isSolid(nx, player.y)) player.x = nx;
+  }
+  if (dy !== 0) {
+    const ny = player.y + dy;
+    if (!isSolid(player.x, ny)) player.y = ny;
+  }
+
+  // Animation frame
+  if (player.moving) {
+    player.frameTimer++;
+    if (player.frameTimer > 8) { player.frame = (player.frame+1)%4; player.frameTimer = 0; }
+  } else { player.frame = 0; }
+
+  if (msgTimer > 0) msgTimer--;
+
+  // ── DESSIN ──
+  drawGame();
+}
+
+function drawGame() {
+  ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0, 0, W, H);
+
+  // Sol et murs
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const tx = c * TILE, ty = r * TILE;
+      if (map[r][c] === 1) {
+        // Mur
+        ctx.fillStyle = C.wall;
+        ctx.fillRect(tx, ty, TILE, TILE);
+        ctx.fillStyle = C.wallTop;
+        ctx.fillRect(tx, ty, TILE, 5);
+        ctx.fillStyle = C.wallShad;
+        ctx.fillRect(tx+TILE-3, ty, 3, TILE);
+        ctx.fillRect(tx, ty+TILE-3, TILE, 3);
+        // Briques
+        ctx.strokeStyle = C.wallShad;
+        ctx.lineWidth = 1;
+        if (r%2===0) {
+          ctx.beginPath(); ctx.moveTo(tx+16, ty); ctx.lineTo(tx+16, ty+TILE); ctx.stroke();
+        } else {
+          ctx.beginPath(); ctx.moveTo(tx, ty+TILE/2); ctx.lineTo(tx+TILE, ty+TILE/2); ctx.stroke();
+        }
+      } else {
+        // Sol
+        ctx.fillStyle = C.floor;
+        ctx.fillRect(tx, ty, TILE, TILE);
+        // Carreaux
+        ctx.strokeStyle = C.floorLine;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(tx+1, ty+1, TILE-2, TILE-2);
+        // Légère variation
+        if ((r+c)%3===0) {
+          ctx.fillStyle = 'rgba(0,0,0,0.03)';
+          ctx.fillRect(tx, ty, TILE, TILE);
+        }
+      }
+    }
+  }
+
+  // Dossiers (dans la salle à gauche)
+  folders.forEach(folder => {
+    const fx = folder.x, fy = folder.y;
+    const done = folder.deposited.length === folder.needed;
+
+    // Ombre
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.fillRect(fx+4, fy+4, TILE*1.8, TILE*1.4);
+
+    // Corps du dossier
+    ctx.fillStyle = done ? '#60c860' : C.folder;
+    ctx.fillRect(fx, fy, TILE*1.8, TILE*1.4);
+    ctx.fillStyle = done ? '#40a840' : C.folderDark;
+    ctx.fillRect(fx, fy, TILE*0.8, TILE*0.25);
+    ctx.fillRect(fx, fy, TILE*1.8, TILE*0.08);
+    ctx.fillRect(fx, fy+TILE*1.3, TILE*1.8, TILE*0.1);
+
+    // Icône
+    ctx.font = '18px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(folder.sym, fx + TILE*0.9, fy + TILE*0.85);
+
+    // Label
+    ctx.font = 'bold 9px Tahoma, sans-serif';
+    ctx.fillStyle = done ? '#1a6a1a' : '#5a4000';
+    ctx.fillText(folder.label, fx + TILE*0.9, fy + TILE*1.25);
+
+    // Plaques déposées (petits carrés)
+    folder.deposited.forEach((pid, i) => {
+      const plq = plaques.find(p => p.id === pid);
+      if (plq) {
+        ctx.fillStyle = plq.color;
+        ctx.fillRect(fx + 2 + i*14, fy - 10, 12, 8);
+        ctx.strokeStyle = '#0006';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(fx + 2 + i*14, fy - 10, 12, 8);
+      }
+    });
+  });
+
+  // Plaques
+  plaques.forEach(plaque => {
+    if (plaque.taken) return;
+    const px = plaque.x, py = plaque.y;
+
+    // Ombre
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.fillRect(px+3, py+3, 22, 30);
+
+    // Plaque
+    ctx.fillStyle = plaque.color;
+    ctx.fillRect(px, py, 22, 30);
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fillRect(px, py, 22, 4);
+    ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(px, py, 22, 30);
+
+    // Symbole (initial de la couleur)
+    ctx.font = 'bold 11px Tahoma, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillText(plaque.label[0], px+12, py+20);
+
+    // Contour scintillant
+    const glow = 0.5 + 0.5*Math.sin(Date.now()/400);
+    ctx.strokeStyle = `rgba(255,255,255,${glow*0.6})`;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(px-1, py-1, 24, 32);
+  });
+
+  // ── JOUEUR (pixel art scientifique) ──
+  drawPlayer(player.x, player.y, player.dir, player.frame, player.inventory);
+
+  // ── HUD inventaire ──
+  if (player.inventory) {
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(10, 10, 140, 32);
+    ctx.fillStyle = player.inventory.color;
+    ctx.fillRect(16, 16, 18, 20);
+    ctx.font = 'bold 11px Tahoma, sans-serif';
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'left';
+    ctx.fillText('Plaque ' + player.inventory.label, 40, 30);
+  }
+
+  // ── MESSAGE ──
+  if (msgTimer > 0) {
+    const alpha = Math.min(1, msgTimer / 30);
+    ctx.fillStyle = `rgba(0,0,0,${alpha*0.7})`;
+    const mw = ctx.measureText(msgText).width + 24;
+    ctx.fillRect(W/2 - mw/2, H - 50, mw, 26);
+    ctx.font = '12px Tahoma, sans-serif';
+    ctx.fillStyle = `rgba(255,255,200,${alpha})`;
+    ctx.textAlign = 'center';
+    ctx.fillText(msgText, W/2, H - 32);
+  }
+
+  // ── LÉGENDE DOSSIERS ──
+  ctx.font = 'bold 10px Tahoma, sans-serif';
+  ctx.fillStyle = '#334';
+  ctx.textAlign = 'left';
+  ctx.fillText('ARCHIVES', 6*TILE+2, 1*TILE-2);
+
+  // ── PASSAGE (col 5, rangée 7) ──
+  // Affiche une porte fermée ou ouverte selon l'état
+  const doorX = 5 * TILE;
+  const doorY = 7 * TILE;
+  if (!passageOpen) {
+    // Porte fermée : une plaque métallique avec cadenas
+    ctx.fillStyle = '#4a6a7a';
+    ctx.fillRect(doorX, doorY, TILE, TILE);
+    ctx.fillStyle = '#3a5a6a';
+    ctx.fillRect(doorX, doorY, TILE, 5);
+    ctx.fillStyle = '#6a8a9a';
+    ctx.fillRect(doorX+2, doorY+2, TILE-4, 10);
+    // Cadenas
+    ctx.fillStyle = '#e8c840';
+    ctx.fillRect(doorX+10, doorY+14, 12, 10);
+    ctx.strokeStyle = '#b89020';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(doorX+16, doorY+14, 5, Math.PI, 0);
+    ctx.stroke();
+    // Texte
+    ctx.font = 'bold 7px Tahoma';
+    ctx.fillStyle = '#ffeeaa';
+    ctx.textAlign = 'center';
+    ctx.fillText('🔒', doorX+16, doorY+28);
+  } else {
+    // Porte ouverte : sol avec effet lumineux vert
+    const glow2 = 0.3 + 0.3*Math.sin(Date.now()/300);
+    ctx.fillStyle = `rgba(60,220,80,${glow2})`;
+    ctx.fillRect(doorX, doorY, TILE, TILE);
+    ctx.strokeStyle = `rgba(100,255,120,${glow2+0.2})`;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(doorX+2, doorY+2, TILE-4, TILE-4);
+    ctx.font = 'bold 7px Tahoma';
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center';
+    ctx.fillText('OPEN', doorX+16, doorY+20);
+  }
+}
+
+function drawPlayer(x, y, dir, frame, inv) {
+  ctx.save();
+  const bounce = player.moving ? Math.sin(frame * Math.PI/2) * 2 : 0;
+  const py2 = y + bounce;
+
+  // Ombre
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.beginPath();
+  ctx.ellipse(x + player.w/2, y + player.h + 1, 9, 4, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // Corps (blouse blanche)
+  ctx.fillStyle = '#e8eef4';
+  ctx.fillRect(x+3, py2+10, 14, 14);
+
+  // Col et rayures de blouse
+  ctx.fillStyle = '#c8d4dc';
+  ctx.fillRect(x+3, py2+10, 14, 2);
+  ctx.fillRect(x+9, py2+10, 2, 14);
+
+  // Bras
+  ctx.fillStyle = '#e8eef4';
+  if (dir !== 2) {
+    // Bras gauche
+    ctx.fillRect(x, py2+11, 4, 9);
+    // Bras droit
+    if (inv) {
+      // Bras levé avec plaque
+      ctx.fillRect(x+16, py2+8, 4, 8);
+      // Plaque en main
+      ctx.fillStyle = inv.color;
+      ctx.fillRect(x+18, py2+4, 10, 7);
+      ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x+18, py2+4, 10, 7);
+    } else {
+      ctx.fillRect(x+16, py2+11, 4, 9);
+    }
+  }
+
+  // Jambes
+  ctx.fillStyle = '#6888a8';
+  const legOff = player.moving ? (frame%2===0 ? 3 : -3) : 0;
+  ctx.fillRect(x+5, py2+24, 5, 8 + legOff);
+  ctx.fillRect(x+10, py2+24, 5, 8 - legOff);
+
+  // Chaussures
+  ctx.fillStyle = '#3a3a4a';
+  ctx.fillRect(x+4, py2+30 + legOff, 6, 3);
+  ctx.fillRect(x+9, py2+30 - legOff, 6, 3);
+
+  // Tête
+  ctx.fillStyle = '#f0c8a0';
+  ctx.fillRect(x+4, py2+1, 12, 11);
+
+  // Yeux selon direction
+  ctx.fillStyle = '#2a2a3a';
+  if (dir === 2) { // bas
+    ctx.fillRect(x+6, py2+5, 2, 2);
+    ctx.fillRect(x+12, py2+5, 2, 2);
+    // bouche
+    ctx.fillRect(x+8, py2+9, 5, 1);
+  } else if (dir === 0) { // haut - cheveux
+    ctx.fillStyle = '#6a4a2a';
+    ctx.fillRect(x+4, py2+1, 12, 4);
+    ctx.fillRect(x+4, py2+1, 2, 6);
+  } else if (dir === 1) { // droite
+    ctx.fillRect(x+12, py2+5, 2, 2);
+    ctx.fillRect(x+11, py2+9, 3, 1);
+  } else { // gauche
+    ctx.fillRect(x+6, py2+5, 2, 2);
+    ctx.fillRect(x+7, py2+9, 3, 1);
+  }
+
+  // Cheveux
+  ctx.fillStyle = '#6a4a2a';
+  ctx.fillRect(x+4, py2+1, 12, 3);
+
+  // Lunettes
+  ctx.strokeStyle = '#4a4a6a';
+  ctx.lineWidth = 1;
+  if (dir === 2 || dir === 1 || dir === 3) {
+    ctx.strokeRect(x+5, py2+4, 4, 3);
+    if (dir === 2) ctx.strokeRect(x+11, py2+4, 4, 3);
+    ctx.beginPath();
+    ctx.moveTo(x+9, py2+5);
+    ctx.lineTo(x+11, py2+5);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
