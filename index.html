@@ -1101,28 +1101,9 @@ body {
     <div id="taskbarTasks"></div>
     <div class="taskbar-sep"></div>
     <div class="taskbar-clock" id="tbClock">00:00</div>
-    <button class="taskbar-exit" onclick="openExitPopup()">⬡ ADMIN</button>
   </div>
 </div>
 
-<!-- EXIT POPUP -->
-<div id="exitPopup">
-  <div class="exit-win">
-    <div class="win-titlebar">
-      <div class="win-titlebar-left">🔐 Déverrouillage administrateur</div>
-      <button class="win-close-btn" onclick="document.getElementById('exitPopup').classList.remove('open')">✕</button>
-    </div>
-    <div class="body">
-      <p>Code administrateur requis pour quitter le mode sécurisé.</p>
-      <input type="password" id="exitCode" maxlength="20" placeholder="Code admin" autocomplete="off">
-      <div style="color:#cc0000; font-size:11px; height:16px;" id="exitErr"></div>
-      <div class="btns">
-        <button class="win-btn" onclick="document.getElementById('exitPopup').classList.remove('open');document.getElementById('exitCode').value='';">Annuler</button>
-        <button class="win-btn win-btn-primary" onclick="tryExit()">Confirmer</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- ═══════════ BOOT ANIMATION SCREEN ═══════════ -->
 <div id="bootScreen" style="display:none; position:fixed; inset:0; z-index:9000; background:#000; font-family:'Courier New',monospace; overflow:hidden;">
