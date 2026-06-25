@@ -745,7 +745,9 @@ body {
       <button class="win-close-btn" id="hintCloseLogin">✕</button>
     </div>
     <div class="body">
-      <p>La destination de rêve du Dr. SIMON. Il a inscrit cette information dans son journal intime</p>
+      <p>La destination de rêve du Dr. SIMON. Il a inscrit cette information dans son journal intime.</p>
+      <div class="indice-label">
+        « Un paradis tropical. Une île volcanique. Le bout du monde. »<br>
         <span style="font-size:10px;color:#888">— Journal intime du Dr. Simon, 14 mars</span>
       </div>
       <div style="text-align:right; margin-top:12px;">
@@ -1139,6 +1141,87 @@ body {
 const LOGIN_PWD   = "TAHITI";
 const ADMIN_CODE  = "SIMON2024EXIT";
 
+// ═══════════════════ AUDIO ═══════════════════
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  return audioCtx;
+}
+
+// Son d'erreur login : alarme grave industrielle
+function playLoginError() {
+  const ac = getAudioCtx();
+  const t = ac.currentTime;
+
+  [0, 0.18].forEach((offset, i) => {
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    const dist = ac.createWaveShaper();
+
+    const curve = new Float32Array(256);
+    for (let j = 0; j < 256; j++) {
+      const x = (j * 2) / 256 - 1;
+      curve[j] = (Math.PI + 300) * x / (Math.PI + 300 * Math.abs(x));
+    }
+    dist.curve = curve;
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(i === 0 ? 180 : 220, t + offset);
+    osc.frequency.exponentialRampToValueAtTime(i === 0 ? 120 : 160, t + offset + 0.4);
+
+    gain.gain.setValueAtTime(0, t + offset);
+    gain.gain.linearRampToValueAtTime(0.35, t + offset + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + offset + 0.55);
+
+    osc.connect(dist);
+    dist.connect(gain);
+    gain.connect(ac.destination);
+    osc.start(t + offset);
+    osc.stop(t + offset + 0.6);
+  });
+}
+
+// Son d'erreur jeu : bips d'alarme courts (durée = message d'erreur)
+let alarmNodes = [];
+let alarmRunning = false;
+
+function playGameAlarm() {
+  if (alarmRunning) return;
+  alarmRunning = true;
+  alarmNodes = [];
+  const ac = getAudioCtx();
+
+  function beep(startTime, freq) {
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(freq, startTime);
+    gain.gain.setValueAtTime(0.22, startTime);
+    gain.gain.setValueAtTime(0.22, startTime + 0.08);
+    gain.gain.linearRampToValueAtTime(0, startTime + 0.12);
+    osc.connect(gain);
+    gain.connect(ac.destination);
+    osc.start(startTime);
+    osc.stop(startTime + 0.13);
+    alarmNodes.push(osc);
+  }
+
+  const t = ac.currentTime;
+  for (let i = 0; i < 6; i++) {
+    beep(t + i * 0.22, i % 2 === 0 ? 880 : 660);
+  }
+
+  setTimeout(() => { alarmRunning = false; alarmNodes = []; }, 1500);
+}
+
+function stopGameAlarm() {
+  alarmRunning = false;
+  alarmNodes.forEach(n => { try { n.stop(); } catch(e){} });
+  alarmNodes = [];
+}
+
 // ═══════════════════ KIOSK ═══════════════════
 document.addEventListener('keydown', e => {
   if (['F5','F11','F12'].includes(e.key) ||
@@ -1180,6 +1263,7 @@ function doLogin() {
     const err = document.getElementById('loginErr');
     err.textContent = '⚠ Le mot de passe est incorrect. Veuillez réessayer.';
     document.getElementById('loginPwd').value = '';
+    playLoginError();
     setTimeout(() => { err.textContent = ''; }, 3000);
   }
 }
@@ -1816,8 +1900,13 @@ function showCriticalError(plaqueName, folderName) {
 
   document.body.appendChild(overlay);
 
+  // Alarme en boucle pendant toute la durée de l'écran d'erreur
+  let alarmLoop = setInterval(() => playGameAlarm(), 1500);
+
   // Ferme le jeu et reset après 7 secondes
   setTimeout(() => {
+    clearInterval(alarmLoop);
+    stopGameAlarm();
     document.body.removeChild(overlay);
     closeWin('winGame');
     resetGame();
@@ -1864,6 +1953,7 @@ function interact() {
             return;
           } else {
             showMsg("Cette plaque est déjà dans ce dossier !");
+            playGameAlarm();
           }
         } else {
           // MAUVAIS DOSSIER → écran d'erreur + fermeture
@@ -1871,6 +1961,7 @@ function interact() {
           const folderName = 'Dossier ' + folder.label;
           player.inventory = null;
           updateInvDisplay();
+          playGameAlarm();
           showCriticalError(plaqueName, folderName);
         }
         return;
