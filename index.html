@@ -1150,6 +1150,82 @@ function getAudioCtx() {
   return audioCtx;
 }
 
+// Son de transition boot : séquence numérique/scientifique
+function playBootSound() {
+  const ac = getAudioCtx();
+  const t = ac.currentTime;
+
+  // ── Séquence de bips montants style initialisation ──
+  const bootTones = [220, 330, 440, 550, 660, 880, 1100, 1320];
+  bootTones.forEach((freq, i) => {
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    const start = t + i * 0.09;
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(freq, start);
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(0.07, start + 0.01);
+    gain.gain.setValueAtTime(0.07, start + 0.06);
+    gain.gain.linearRampToValueAtTime(0, start + 0.09);
+    osc.connect(gain); gain.connect(ac.destination);
+    osc.start(start); osc.stop(start + 0.1);
+  });
+
+  // ── Nappe synthétique froide (pad scientifique) ──
+  const padStart = t + 0.7;
+  [130, 196, 261, 392].forEach((freq, i) => {
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    const filter = ac.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(freq * 2, padStart);
+    filter.Q.setValueAtTime(0.8, padStart);
+    osc.type = i % 2 === 0 ? 'sine' : 'triangle';
+    osc.frequency.setValueAtTime(freq, padStart);
+    osc.frequency.linearRampToValueAtTime(freq * 1.004, padStart + 8); // légère dérive
+    gain.gain.setValueAtTime(0, padStart);
+    gain.gain.linearRampToValueAtTime(0.06, padStart + 1.2);
+    gain.gain.setValueAtTime(0.06, padStart + 6.5);
+    gain.gain.linearRampToValueAtTime(0, padStart + 8.5);
+    osc.connect(filter); filter.connect(gain); gain.connect(ac.destination);
+    osc.start(padStart); osc.stop(padStart + 9);
+  });
+
+  // ── Scan numérique : noise filtré qui balaie ──
+  const bufferSize = ac.sampleRate * 0.8;
+  const noiseBuffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
+  const data = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+  const noise = ac.createBufferSource();
+  noise.buffer = noiseBuffer;
+  const noiseFilter = ac.createBiquadFilter();
+  const noiseGain = ac.createGain();
+  noiseFilter.type = 'bandpass';
+  noiseFilter.frequency.setValueAtTime(200, t + 0.3);
+  noiseFilter.frequency.exponentialRampToValueAtTime(4000, t + 1.1);
+  noiseFilter.Q.setValueAtTime(3, t + 0.3);
+  noiseGain.gain.setValueAtTime(0, t + 0.3);
+  noiseGain.gain.linearRampToValueAtTime(0.12, t + 0.35);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 1.1);
+  noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(ac.destination);
+  noise.start(t + 0.3); noise.stop(t + 1.2);
+
+  // ── Bip final de confirmation ──
+  const confirmStart = t + 9.2;
+  [523, 659, 784].forEach((freq, i) => {
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    const s = confirmStart + i * 0.12;
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, s);
+    gain.gain.setValueAtTime(0.1, s);
+    gain.gain.exponentialRampToValueAtTime(0.001, s + 0.18);
+    osc.connect(gain); gain.connect(ac.destination);
+    osc.start(s); osc.stop(s + 0.2);
+  });
+}
+
 // Son d'erreur login : alarme grave industrielle
 function playLoginError() {
   const ac = getAudioCtx();
@@ -1183,40 +1259,98 @@ function playLoginError() {
   });
 }
 
-// Son d'erreur jeu : bips d'alarme courts (durée = message d'erreur)
+// Son d'erreur jeu : grosse basse terrifiante style bruhhhhh
 let alarmNodes = [];
 let alarmRunning = false;
+let alarmIntervalId = null;
 
 function playGameAlarm() {
-  if (alarmRunning) return;
-  alarmRunning = true;
-  alarmNodes = [];
   const ac = getAudioCtx();
-
-  function beep(startTime, freq) {
-    const osc = ac.createOscillator();
-    const gain = ac.createGain();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(freq, startTime);
-    gain.gain.setValueAtTime(0.22, startTime);
-    gain.gain.setValueAtTime(0.22, startTime + 0.08);
-    gain.gain.linearRampToValueAtTime(0, startTime + 0.12);
-    osc.connect(gain);
-    gain.connect(ac.destination);
-    osc.start(startTime);
-    osc.stop(startTime + 0.13);
-    alarmNodes.push(osc);
-  }
-
   const t = ac.currentTime;
-  for (let i = 0; i < 6; i++) {
-    beep(t + i * 0.22, i % 2 === 0 ? 880 : 660);
-  }
+  const nodes = [];
 
-  setTimeout(() => { alarmRunning = false; alarmNodes = []; }, 1500);
+  // ── COUCHE 1 : basse sub profonde (30-45 Hz) ──
+  const sub = ac.createOscillator();
+  const subGain = ac.createGain();
+  sub.type = 'sine';
+  sub.frequency.setValueAtTime(38, t);
+  sub.frequency.linearRampToValueAtTime(28, t + 1.8);
+  subGain.gain.setValueAtTime(0, t);
+  subGain.gain.linearRampToValueAtTime(0.35, t + 0.12);
+  subGain.gain.setValueAtTime(0.35, t + 1.2);
+  subGain.gain.exponentialRampToValueAtTime(0.001, t + 1.9);
+  sub.connect(subGain); subGain.connect(ac.destination);
+  sub.start(t); sub.stop(t + 2.0);
+  nodes.push(sub);
+
+  // ── COUCHE 2 : basse mid saturée (55-70 Hz) ──
+  const mid = ac.createOscillator();
+  const midDist = ac.createWaveShaper();
+  const midGain = ac.createGain();
+  const midFilter = ac.createBiquadFilter();
+
+  // Distorsion brutale
+  const curve = new Float32Array(512);
+  for (let i = 0; i < 512; i++) {
+    const x = (i * 2) / 512 - 1;
+    curve[i] = (Math.PI + 800) * x / (Math.PI + 800 * Math.abs(x));
+  }
+  midDist.curve = curve;
+
+  midFilter.type = 'lowpass';
+  midFilter.frequency.setValueAtTime(200, t);
+
+  mid.type = 'sawtooth';
+  mid.frequency.setValueAtTime(58, t);
+  mid.frequency.linearRampToValueAtTime(44, t + 1.8);
+  midGain.gain.setValueAtTime(0, t);
+  midGain.gain.linearRampToValueAtTime(0.2, t + 0.08);
+  midGain.gain.setValueAtTime(0.2, t + 1.1);
+  midGain.gain.exponentialRampToValueAtTime(0.001, t + 1.9);
+  mid.connect(midDist); midDist.connect(midFilter); midFilter.connect(midGain); midGain.connect(ac.destination);
+  mid.start(t); mid.stop(t + 2.0);
+  nodes.push(mid);
+
+  // ── COUCHE 3 : rumble (LFO sur le volume) ──
+  const rumble = ac.createOscillator();
+  const rumbleGain = ac.createGain();
+  const lfo = ac.createOscillator();
+  const lfoGain = ac.createGain();
+
+  lfo.type = 'sine';
+  lfo.frequency.setValueAtTime(6, t); // tremblement 6 Hz
+  lfoGain.gain.setValueAtTime(0.08, t);
+  lfo.connect(lfoGain); lfoGain.connect(rumbleGain.gain);
+
+  rumble.type = 'square';
+  rumble.frequency.setValueAtTime(32, t);
+  rumble.frequency.linearRampToValueAtTime(22, t + 1.8);
+  rumbleGain.gain.setValueAtTime(0.12, t);
+  rumbleGain.gain.setValueAtTime(0.12, t + 1.2);
+  rumbleGain.gain.exponentialRampToValueAtTime(0.001, t + 1.9);
+
+  rumble.connect(rumbleGain); rumbleGain.connect(ac.destination);
+  rumble.start(t); rumble.stop(t + 2.0);
+  lfo.start(t); lfo.stop(t + 2.0);
+  nodes.push(rumble); nodes.push(lfo);
+
+  // ── COUCHE 4 : impact percussif au début (BOOM) ──
+  const boom = ac.createOscillator();
+  const boomGain = ac.createGain();
+  boom.type = 'sine';
+  boom.frequency.setValueAtTime(80, t);
+  boom.frequency.exponentialRampToValueAtTime(20, t + 0.35);
+  boomGain.gain.setValueAtTime(0.45, t);
+  boomGain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+  boom.connect(boomGain); boomGain.connect(ac.destination);
+  boom.start(t); boom.stop(t + 0.45);
+  nodes.push(boom);
+
+  alarmNodes = nodes;
 }
 
 function stopGameAlarm() {
+  if (alarmIntervalId) { clearInterval(alarmIntervalId); alarmIntervalId = null; }
   alarmRunning = false;
   alarmNodes.forEach(n => { try { n.stop(); } catch(e){} });
   alarmNodes = [];
@@ -1272,6 +1406,7 @@ function doLogin() {
 function startBootAnimation() {
   const screen = document.getElementById('bootScreen');
   screen.style.display = 'block';
+  playBootSound();
 
   // ── Code rain canvas ──
   const canvas = document.getElementById('bootCanvas');
@@ -1894,23 +2029,25 @@ function showCriticalError(plaqueName, folderName) {
       Retrouvez les vraies plaques pour recommencer le protocole.
     </div>
     <div style="color:#ff4040; font-size:13px; letter-spacing:2px; animation:blink 1s infinite;">
-      FERMETURE DU PROTOCOLE EN COURS...
+      FERMETURE DU PROTOCOLE DANS 12 SECONDES...
     </div>
   `;
 
   document.body.appendChild(overlay);
 
-  // Alarme en boucle pendant toute la durée de l'écran d'erreur
-  let alarmLoop = setInterval(() => playGameAlarm(), 1500);
+  // Premier BRUHHH immédiat, puis toutes les 2.2s (rythme lent et oppressant)
+  playGameAlarm();
+  alarmIntervalId = setInterval(() => playGameAlarm(), 2200);
 
-  // Ferme le jeu et reset après 7 secondes
+  // Ferme le jeu et reset après 12 secondes
   setTimeout(() => {
-    clearInterval(alarmLoop);
+    clearInterval(alarmIntervalId);
+    alarmIntervalId = null;
     stopGameAlarm();
     document.body.removeChild(overlay);
     closeWin('winGame');
     resetGame();
-  }, 7000);
+  }, 12000);
 }
 
 // ── RESET DU JEU ──
