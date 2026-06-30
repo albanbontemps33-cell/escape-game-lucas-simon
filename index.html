@@ -747,7 +747,6 @@ body {
     <div class="body">
       <p>La destination de rêve du Dr. SIMON. Il a inscrit cette information dans son journal intime.</p>
       <div class="indice-label">
-        « Un paradis tropical. Une île volcanique. Le bout du monde. »<br>
         <span style="font-size:10px;color:#888">— Journal intime du Dr. Simon, 14 mars</span>
       </div>
       <div style="text-align:right; margin-top:12px;">
@@ -1150,82 +1149,6 @@ function getAudioCtx() {
   return audioCtx;
 }
 
-// Son de transition boot : séquence numérique/scientifique
-function playBootSound() {
-  const ac = getAudioCtx();
-  const t = ac.currentTime;
-
-  // ── Séquence de bips montants style initialisation ──
-  const bootTones = [220, 330, 440, 550, 660, 880, 1100, 1320];
-  bootTones.forEach((freq, i) => {
-    const osc = ac.createOscillator();
-    const gain = ac.createGain();
-    const start = t + i * 0.09;
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(freq, start);
-    gain.gain.setValueAtTime(0, start);
-    gain.gain.linearRampToValueAtTime(0.07, start + 0.01);
-    gain.gain.setValueAtTime(0.07, start + 0.06);
-    gain.gain.linearRampToValueAtTime(0, start + 0.09);
-    osc.connect(gain); gain.connect(ac.destination);
-    osc.start(start); osc.stop(start + 0.1);
-  });
-
-  // ── Nappe synthétique froide (pad scientifique) ──
-  const padStart = t + 0.7;
-  [130, 196, 261, 392].forEach((freq, i) => {
-    const osc = ac.createOscillator();
-    const gain = ac.createGain();
-    const filter = ac.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(freq * 2, padStart);
-    filter.Q.setValueAtTime(0.8, padStart);
-    osc.type = i % 2 === 0 ? 'sine' : 'triangle';
-    osc.frequency.setValueAtTime(freq, padStart);
-    osc.frequency.linearRampToValueAtTime(freq * 1.004, padStart + 8); // légère dérive
-    gain.gain.setValueAtTime(0, padStart);
-    gain.gain.linearRampToValueAtTime(0.06, padStart + 1.2);
-    gain.gain.setValueAtTime(0.06, padStart + 6.5);
-    gain.gain.linearRampToValueAtTime(0, padStart + 8.5);
-    osc.connect(filter); filter.connect(gain); gain.connect(ac.destination);
-    osc.start(padStart); osc.stop(padStart + 9);
-  });
-
-  // ── Scan numérique : noise filtré qui balaie ──
-  const bufferSize = ac.sampleRate * 0.8;
-  const noiseBuffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
-  const data = noiseBuffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-
-  const noise = ac.createBufferSource();
-  noise.buffer = noiseBuffer;
-  const noiseFilter = ac.createBiquadFilter();
-  const noiseGain = ac.createGain();
-  noiseFilter.type = 'bandpass';
-  noiseFilter.frequency.setValueAtTime(200, t + 0.3);
-  noiseFilter.frequency.exponentialRampToValueAtTime(4000, t + 1.1);
-  noiseFilter.Q.setValueAtTime(3, t + 0.3);
-  noiseGain.gain.setValueAtTime(0, t + 0.3);
-  noiseGain.gain.linearRampToValueAtTime(0.12, t + 0.35);
-  noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 1.1);
-  noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(ac.destination);
-  noise.start(t + 0.3); noise.stop(t + 1.2);
-
-  // ── Bip final de confirmation ──
-  const confirmStart = t + 9.2;
-  [523, 659, 784].forEach((freq, i) => {
-    const osc = ac.createOscillator();
-    const gain = ac.createGain();
-    const s = confirmStart + i * 0.12;
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, s);
-    gain.gain.setValueAtTime(0.1, s);
-    gain.gain.exponentialRampToValueAtTime(0.001, s + 0.18);
-    osc.connect(gain); gain.connect(ac.destination);
-    osc.start(s); osc.stop(s + 0.2);
-  });
-}
-
 // Son d'erreur login : alarme grave industrielle
 function playLoginError() {
   const ac = getAudioCtx();
@@ -1406,7 +1329,6 @@ function doLogin() {
 function startBootAnimation() {
   const screen = document.getElementById('bootScreen');
   screen.style.display = 'block';
-  playBootSound();
 
   // ── Code rain canvas ──
   const canvas = document.getElementById('bootCanvas');
@@ -2029,7 +1951,7 @@ function showCriticalError(plaqueName, folderName) {
       Retrouvez les vraies plaques pour recommencer le protocole.
     </div>
     <div style="color:#ff4040; font-size:13px; letter-spacing:2px; animation:blink 1s infinite;">
-      FERMETURE DU PROTOCOLE DANS 12 SECONDES...
+      FERMETURE DU PROTOCOLE EN COURS...
     </div>
   `;
 
@@ -2039,7 +1961,7 @@ function showCriticalError(plaqueName, folderName) {
   playGameAlarm();
   alarmIntervalId = setInterval(() => playGameAlarm(), 2200);
 
-  // Ferme le jeu et reset après 12 secondes
+  // Ferme le jeu et reset après 7 secondes
   setTimeout(() => {
     clearInterval(alarmIntervalId);
     alarmIntervalId = null;
@@ -2047,7 +1969,7 @@ function showCriticalError(plaqueName, folderName) {
     document.body.removeChild(overlay);
     closeWin('winGame');
     resetGame();
-  }, 12000);
+  }, 7000);
 }
 
 // ── RESET DU JEU ──
