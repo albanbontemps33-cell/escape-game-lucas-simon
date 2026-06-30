@@ -1182,6 +1182,123 @@ function playLoginError() {
   });
 }
 
+// Son de transition boot : séquence numérique synchronisée sur 10s
+function playBootSound() {
+  const ac = getAudioCtx();
+  const t = ac.currentTime;
+
+  // ── Bip de démarrage immédiat (validation login) ──
+  const startBeep = ac.createOscillator();
+  const startGain = ac.createGain();
+  startBeep.type = 'square';
+  startBeep.frequency.setValueAtTime(660, t);
+  startGain.gain.setValueAtTime(0.09, t);
+  startGain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+  startBeep.connect(startGain); startGain.connect(ac.destination);
+  startBeep.start(t); startBeep.stop(t + 0.16);
+
+  // ── Petits bips de log toutes les ~0.43s (23 lignes sur 10s) ──
+  const nbLines = 23;
+  const lineInterval = 10 / nbLines;
+  for (let i = 0; i < nbLines; i++) {
+    const start = t + 0.1 + i * lineInterval;
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    // Alterne deux fréquences type "tick" clavier mécanique
+    const freq = (i % 4 === 0) ? 1400 : (i % 3 === 0) ? 950 : 1150;
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(freq, start);
+    gain.gain.setValueAtTime(0.025, start);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.04);
+    osc.connect(gain); gain.connect(ac.destination);
+    osc.start(start); osc.stop(start + 0.05);
+  }
+
+  // ── Nappe synthétique froide en fond pendant tout le boot ──
+  [110, 165, 220].forEach((freq, i) => {
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    const filter = ac.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(freq * 2.2, t);
+    filter.Q.setValueAtTime(0.7, t);
+    osc.type = i === 1 ? 'triangle' : 'sine';
+    osc.frequency.setValueAtTime(freq, t);
+    osc.frequency.linearRampToValueAtTime(freq * 1.006, t + 9.5);
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.045, t + 1.0);
+    gain.gain.setValueAtTime(0.045, t + 8.3);
+    gain.gain.linearRampToValueAtTime(0, t + 9.6);
+    osc.connect(filter); filter.connect(gain); gain.connect(ac.destination);
+    osc.start(t); osc.stop(t + 9.7);
+  });
+
+  // ── Scan numérique (bruit filtré qui balaie) autour de 0.3-1.2s ──
+  const bufferSize = ac.sampleRate * 0.9;
+  const noiseBuffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
+  const data = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+  const noise = ac.createBufferSource();
+  noise.buffer = noiseBuffer;
+  const noiseFilter = ac.createBiquadFilter();
+  const noiseGain = ac.createGain();
+  noiseFilter.type = 'bandpass';
+  noiseFilter.frequency.setValueAtTime(180, t + 0.3);
+  noiseFilter.frequency.exponentialRampToValueAtTime(3500, t + 1.2);
+  noiseFilter.Q.setValueAtTime(3, t + 0.3);
+  noiseGain.gain.setValueAtTime(0, t + 0.3);
+  noiseGain.gain.linearRampToValueAtTime(0.07, t + 0.35);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+  noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(ac.destination);
+  noise.start(t + 0.3); noise.stop(t + 1.3);
+
+  // ── Second scan vers le milieu du boot (montage volumes chiffrés ~5s) ──
+  const buffer2 = ac.createBuffer(1, bufferSize, ac.sampleRate);
+  const data2 = buffer2.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data2[i] = Math.random() * 2 - 1;
+  const noise2 = ac.createBufferSource();
+  noise2.buffer = buffer2;
+  const noiseFilter2 = ac.createBiquadFilter();
+  const noiseGain2 = ac.createGain();
+  noiseFilter2.type = 'bandpass';
+  noiseFilter2.frequency.setValueAtTime(2500, t + 5.0);
+  noiseFilter2.frequency.exponentialRampToValueAtTime(150, t + 5.9);
+  noiseFilter2.Q.setValueAtTime(4, t + 5.0);
+  noiseGain2.gain.setValueAtTime(0, t + 5.0);
+  noiseGain2.gain.linearRampToValueAtTime(0.06, t + 5.05);
+  noiseGain2.gain.exponentialRampToValueAtTime(0.001, t + 5.9);
+  noise2.connect(noiseFilter2); noiseFilter2.connect(noiseGain2); noiseGain2.connect(ac.destination);
+  noise2.start(t + 5.0); noise2.stop(t + 6.0);
+
+  // ── Bip d'authentification validée vers 7s ──
+  const authStart = t + 7.0;
+  [784, 988].forEach((freq, i) => {
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    const s = authStart + i * 0.1;
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, s);
+    gain.gain.setValueAtTime(0.07, s);
+    gain.gain.exponentialRampToValueAtTime(0.001, s + 0.15);
+    osc.connect(gain); gain.connect(ac.destination);
+    osc.start(s); osc.stop(s + 0.16);
+  });
+
+  // ── Séquence finale de confirmation (système prêt) à 9.6s ──
+  const confirmStart = t + 9.6;
+  [523, 659, 784, 1047].forEach((freq, i) => {
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    const s = confirmStart + i * 0.1;
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, s);
+    gain.gain.setValueAtTime(0.09, s);
+    gain.gain.exponentialRampToValueAtTime(0.001, s + 0.2);
+    osc.connect(gain); gain.connect(ac.destination);
+    osc.start(s); osc.stop(s + 0.22);
+  });
+}
+
 // Son d'erreur jeu : grosse basse terrifiante style bruhhhhh
 let alarmNodes = [];
 let alarmRunning = false;
@@ -1329,6 +1446,7 @@ function doLogin() {
 function startBootAnimation() {
   const screen = document.getElementById('bootScreen');
   screen.style.display = 'block';
+  playBootSound();
 
   // ── Code rain canvas ──
   const canvas = document.getElementById('bootCanvas');
